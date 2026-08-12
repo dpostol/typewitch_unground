@@ -66,9 +66,12 @@ impl<'a> State<'a> {
 
                 if self.options.rigid_vars {
                     (typ, self.z3.true_z3())
-                } else {
-                    self.weaken(typ, exp, self.z3.true_z3())
+                } else if self.options.ungrounded { 
+                   self.weakenish(typ, exp, self.z3.true_z3()) 
                 }
+                  else {
+                    self.weaken(typ, exp, self.z3.true_z3())
+                 }
             }
             // Γ,x:T_1 ⊢ e => T_2, φ
             // ---------------------------------------
@@ -106,7 +109,12 @@ impl<'a> State<'a> {
                 let arr = Typ::Arr(Box::new(alpha.clone()), Box::new(beta.clone()));
                 let phi3 = self.strengthen(t1.clone(), arr, e1);
                 let phi4 = self.t2z3(&t2)._eq(&self.t2z3(&alpha));
-                self.weaken(beta, exp, phi1 & phi2 & phi3 & phi4)
+                if self.options.ungrounded {
+                 self.weakenish(beta, exp, phi1 & phi2 & phi3 & phi4)
+                }
+                else{
+                self.weaken(beta, exp, phi1 & phi2 & phi3 & phi4) 
+                }
             }
             // Γ ⊢ e => T, φ
             // ----------------------------------------------
@@ -489,6 +497,16 @@ impl<'a> State<'a> {
         (alpha, phi1 & (coerce_case | dont_coerce_case))
     }
 
+    ///The weaken function from the formalism in the paper
+    fn weakenish(&self, t1 : Typ, exp :  &mut Exp, phi1: Bool<'a>) -> (Typ, Bool<'a>) {
+        let alpha = next_metavar();
+        let coerce_case = self.t2z3(&alpha)._eq(&self.z3.any_z3);     
+        let dont_coerce_case = self.t2z3(&t1)._eq(&self.t2z3(&alpha));
+        self.coerce(t1, alpha.clone(), exp);
+        (alpha, phi1 & (coerce_case | dont_coerce_case))
+    }
+ 
+
     /// Provided a type, generate constraints that the type has any in all of
     /// its negative forms. The function is more weak / general than it could be
     /// due to the difficulties with z3.
@@ -637,6 +655,7 @@ pub fn typeinf_options(mut exp: Exp, env: &Env, options: Options) -> Result<Exp,
         options,
     };
     let (t, phi) = s.cgen(env, &mut exp);
+    println!("{}", phi);
     s.solver.assert(&phi);
     if options.debug {
         eprintln!("Simplified constraints:");

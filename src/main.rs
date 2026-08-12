@@ -97,6 +97,9 @@ pub struct Opts {
     /// Produce an exact type that may not be safe in all contexts
     #[clap(long = "precise")]
     unsafe_mode: bool,
+    ///The ungrounded version of the algorithm
+    #[clap(long = "ungrounded")]
+    ungrounded : bool,
     /// All uses of a variable have the same type (by default, variables can be weakened)
     #[clap(long = "rigid-vars")]
     rigid_variables: bool,
@@ -141,6 +144,7 @@ pub struct Options {
     debug: bool,
     rigid_vars: bool,
     annot: Annot,
+    ungrounded: bool,
 }
 
 impl Default for Options {
@@ -151,6 +155,7 @@ impl Default for Options {
             debug: false,
             rigid_vars: false,
             annot: Annot::Hard,
+            ungrounded: false,
         }
     }
 }
@@ -165,7 +170,7 @@ fn main() -> Result<()> {
         }
         SubCommand::LatexBenchmarks(opts) => benchmark::details_latex(&opts.input),
         SubCommand::LatexBenchmarkSummary(opts) => benchmark::summarize_latex(&opts.input),
-    }
+            }
 }
 
 fn eval_main(opts: EvalOpts) -> Result<()> {
@@ -196,6 +201,7 @@ fn migrate_main(config: Opts) -> Result<()> {
         debug: config.debug,
         rigid_vars: config.rigid_variables,
         annot: config.annot,
+        ungrounded: config.ungrounded,
     };
 
     let language = match config.parser {
