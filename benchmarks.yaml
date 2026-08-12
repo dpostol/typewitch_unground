@@ -13,6 +13,8 @@ tools:
     command: [ "./bin/TypeWhich", "migrate" ]
   - title: TypeWhich
     command: [ "./bin/TypeWhich", "migrate", "--precise" ]
+  - title: TypeWhichU
+    command: [ "./bin/TypeWhich", "migrate", "--ungrounded" ]
 
 benchmarks:
   - file: adversarial/01-farg-mismatch.gtlc
