@@ -495,7 +495,11 @@ impl<'a> State<'a> {
         (alpha, phi1 & (coerce_case | dont_coerce_case))
     }
 
-    ///The weaken function from the formalism in the paper
+    /// The weaken function from the formalism in the paper
+    /// Γ ⊢ e: T => coerce(T, α, e), α, φ
+    ///             && T = α || (α = any             )      |> weaken'
+    ///
+    /// NB this is identical to the above, but without the grounding
     fn weakenish(&self, t1: Typ, exp: &mut Exp, phi1: Bool<'a>) -> (Typ, Bool<'a>) {
         let alpha = next_metavar();
         let coerce_case = self.t2z3(&alpha)._eq(&self.z3.any_z3);
