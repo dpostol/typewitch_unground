@@ -66,12 +66,11 @@ impl<'a> State<'a> {
 
                 if self.options.rigid_vars {
                     (typ, self.z3.true_z3())
-                } else if self.options.ungrounded { 
-                   self.weakenish(typ, exp, self.z3.true_z3()) 
-                }
-                  else {
+                } else if self.options.ungrounded {
+                    self.weakenish(typ, exp, self.z3.true_z3())
+                } else {
                     self.weaken(typ, exp, self.z3.true_z3())
-                 }
+                }
             }
             // Γ,x:T_1 ⊢ e => T_2, φ
             // ---------------------------------------
@@ -110,10 +109,9 @@ impl<'a> State<'a> {
                 let phi3 = self.strengthen(t1.clone(), arr, e1);
                 let phi4 = self.t2z3(&t2)._eq(&self.t2z3(&alpha));
                 if self.options.ungrounded {
-                 self.weakenish(beta, exp, phi1 & phi2 & phi3 & phi4)
-                }
-                else{
-                self.weaken(beta, exp, phi1 & phi2 & phi3 & phi4) 
+                    self.weakenish(beta, exp, phi1 & phi2 & phi3 & phi4)
+                } else {
+                    self.weaken(beta, exp, phi1 & phi2 & phi3 & phi4)
                 }
             }
             // Γ ⊢ e => T, φ
@@ -436,7 +434,7 @@ impl<'a> State<'a> {
             let t = self.z3.vect_typ(&t);
             t._eq(&self.z3.any_z3)
         } else {
-            panic!("missing case in negative_any {:?}", t);
+            return panic!("missing case in negative_any {:?}", t);
         }
     }
 
@@ -497,15 +495,18 @@ impl<'a> State<'a> {
         (alpha, phi1 & (coerce_case | dont_coerce_case))
     }
 
-    ///The weaken function from the formalism in the paper
-    fn weakenish(&self, t1 : Typ, exp :  &mut Exp, phi1: Bool<'a>) -> (Typ, Bool<'a>) {
+    /// The weaken function from the formalism in the paper
+    /// Γ ⊢ e: T => coerce(T, α, e), α, φ
+    ///             && T = α || (α = any             )      |> weaken'
+    ///
+    /// NB this is identical to the above, but without the grounding
+    fn weakenish(&self, t1: Typ, exp: &mut Exp, phi1: Bool<'a>) -> (Typ, Bool<'a>) {
         let alpha = next_metavar();
-        let coerce_case = self.t2z3(&alpha)._eq(&self.z3.any_z3);     
+        let coerce_case = self.t2z3(&alpha)._eq(&self.z3.any_z3);
         let dont_coerce_case = self.t2z3(&t1)._eq(&self.t2z3(&alpha));
         self.coerce(t1, alpha.clone(), exp);
         (alpha, phi1 & (coerce_case | dont_coerce_case))
     }
- 
 
     /// Provided a type, generate constraints that the type has any in all of
     /// its negative forms. The function is more weak / general than it could be
