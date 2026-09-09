@@ -9,6 +9,7 @@
 use super::syntax::{Coerce, Exp, GroundTyp, Id, Lit, Typ};
 use im_rc::HashMap;
 
+
 type Env = HashMap<Id, Typ>;
 
 type R = Result<Typ, String>;
@@ -41,9 +42,9 @@ pub fn coerce(src: &Typ, dst: &Typ) -> Coerce {
         (Typ::Arr(dom1, rng1), Typ::Arr(dom2, rng2)) => {
             Coerce::Wrap(Box::new(coerce(dom2, dom1)), Box::new(coerce(rng1, rng2)))
         }
-        (Typ::Any, Typ::Int) => Coerce::Untag(GroundTyp::Int),
-        (Typ::Any, Typ::Bool) => Coerce::Untag(GroundTyp::Bool),
-        (Typ::Any, Typ::Arr(dom, rng)) => Coerce::Untag(GroundTyp::Fun).seq(&Coerce::Wrap(
+        (Typ::Any, Typ::Int) => Coerce::Untag(GroundTyp::Int, rand::random_range(1 .. 1000000)),
+        (Typ::Any, Typ::Bool) => Coerce::Untag(GroundTyp::Bool, rand::random_range(1 .. 1000000)),
+        (Typ::Any, Typ::Arr(dom, rng)) => Coerce::Untag(GroundTyp::Fun, rand::random_range(1 .. 1000000)).seq(&Coerce::Wrap(
             Box::new(coerce(dom, &Typ::Any)),
             Box::new(coerce(&Typ::Any, rng)),
         )),

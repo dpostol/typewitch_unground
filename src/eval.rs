@@ -63,7 +63,7 @@ impl Eval {
                     Err(Error::Coercion(format!("tag({:?}) on {:?}", g, v)))
                 }
             }
-            Coerce::Untag(g) => match v {
+            Coerce::Untag(g, lab) => match v {
                 Val::Tagged(g2, v) => {
                     if g == &g2 {
                         Ok(*v)

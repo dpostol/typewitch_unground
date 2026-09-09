@@ -13,7 +13,7 @@ pub enum GroundTyp {
 pub enum Coerce {
     Id,
     Tag(GroundTyp),
-    Untag(GroundTyp),
+    Untag(GroundTyp, String),
     Wrap(Box<Coerce>, Box<Coerce>),
     Seq(Box<Coerce>, Box<Coerce>),
     Doomed,
