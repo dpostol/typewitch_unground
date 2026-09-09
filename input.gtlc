@@ -1,1 +1,4 @@
-((fun y. (y y)) (fun y. (y y))) false
+(fun h:(int -> any -> int) -> ((any -> any) -> (int -> int -> int) -> ((any -> int) -> any -> any -> int) -> int) -> int.
+(fun x:any -> any. (h : any) (x x)) (fun x:any. (h : any) x x))
+(fun e:int -> any -> int.
+fun m:(any -> any) -> (int -> int -> int) -> ((any -> int) -> any -> any -> int) -> int.  m (fun x:any. x) (fun m:int. fun n:int. e m (e n)) (fun m:any -> int. fun v:any. e (m v)))

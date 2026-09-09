@@ -656,6 +656,7 @@ pub fn typeinf_options(mut exp: Exp, env: &Env, options: Options) -> Result<Exp,
         options,
     };
     let (t, phi) = s.cgen(env, &mut exp);
+    eprintln!("{:#?}", phi);
     s.solver.assert(&phi);
     if options.debug {
         eprintln!("Simplified constraints:");
