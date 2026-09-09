@@ -15,9 +15,10 @@ tools:
     command: [ "./bin/TypeWhich", "migrate", "--precise" ]
   - title: TypeWhichU
     command: [ "./bin/TypeWhich", "migrate", "--ungrounded", "--precise" ]
+  - title: TypeWhichU2
+    command: [ "./bin/TypeWhich", "migrate", "--ungrounded" ]
 
 benchmarks:
-  - file: input.gtlc
   - file: adversarial/01-farg-mismatch.gtlc
   - file: adversarial/02-rank2-poly-id.gtlc
     # Improved i:any to i:any -> any. But, i is always applied, so this is
