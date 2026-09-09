@@ -68,7 +68,7 @@ impl Eval {
                     if g == &g2 {
                         Ok(*v)
                     } else {
-                        Err(Error::Coercion(format!("untag({:?})", g)))
+                        Err(Error::Coercion(format!("untag({:?} {:?})", g, lab)))
                     }
                 }
                 _ => Err(Error::Coercion(format!("untagged a not-tagged value"))),
