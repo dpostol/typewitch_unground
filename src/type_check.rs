@@ -293,7 +293,7 @@ fn should_match(t1: &Typ, t2: Typ) -> Result<Typ, String> {
         let e = mismatched(t1, &t2);
         // this serves as a replacement for line numbers haha
         if PANIC_ON_MISMATCH {
-            panic!("PANIC_ON_MISMATCH = true: {:?}", e);
+            panic!("PANIC_ON_MISMATCH = true: {e:?}");
         }
         e
     }

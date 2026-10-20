@@ -86,7 +86,7 @@ fn count_stars(e: &super::syntax::Exp) -> usize {
             }) + count_stars(e)
         }
         Exp::If(e1, e2, e3) => count_stars(e1) + count_stars(e2) + count_stars(e3),
-        _ => panic!("count_stars on {:?}", e),
+        _ => panic!("count_stars on {e:?}"),
     }
 }
 
@@ -357,8 +357,8 @@ pub fn benchmark_main(src_file: impl AsRef<str>, ignore: &[String]) -> Result<()
         // Remove the expected outcomes for ignored tools, or we panic later.
         b.results
             .retain(|tool_title, _| !ignore.contains(tool_title));
-        for t in &benchmarks.tools {
-            eprintln!("Running {} on {} ...", t.title, b.file);
+        for t @ MigrationTool { title, .. } in &benchmarks.tools {
+            eprintln!("Running {} on {} ...", title, b.file);
             benchmark_one(t, b);
         }
     }

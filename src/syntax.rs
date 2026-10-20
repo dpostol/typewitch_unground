@@ -251,9 +251,9 @@ pub enum BinOp {
 
 impl UnOp {
     pub fn typ(&self) -> (Typ, Typ) {
+        use Typ::*;
         #[allow(unused_imports)]
         use std::boxed::Box;
-        use Typ::*;
         match self {
             UnOp::Not => (Bool, Bool),
             UnOp::BinaryNot => (Int, Int),
@@ -279,9 +279,9 @@ impl UnOp {
 }
 impl BinOp {
     pub fn typ(&self) -> (Typ, Typ, Typ) {
+        use Typ::*;
         #[allow(unused_imports)]
         use std::boxed::Box;
-        use Typ::*;
         match self {
             BinOp::IntEq => (Int, Int, Bool),
             BinOp::IntAdd | BinOp::IntMul => (Int, Int, Int),

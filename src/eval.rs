@@ -105,7 +105,7 @@ impl Eval {
                         self.eval_k(&rng, r)
                     }
                     // Coercion insertion should ensure this does not occur
-                    _ => panic!("expected closure value in function position (got {:?})", v1),
+                    _ => panic!("expected closure value in function position (got {v1:?})"),
                 }
             }
             Exp::Coerce(t1, t2, e) => {

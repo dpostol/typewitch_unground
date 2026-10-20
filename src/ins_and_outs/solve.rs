@@ -1,5 +1,5 @@
-use super::syntax::Typ;
 use super::Closure;
+use super::syntax::Typ;
 use im_rc::HashMap;
 
 pub fn solve_closure(cs: Closure) -> HashMap<Typ, Typ> {

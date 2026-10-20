@@ -288,11 +288,11 @@ fn migrate_main(config: Opts) -> Result<()> {
 
 #[cfg(test)]
 mod tests_631 {
+    use super::Options;
     use super::cgen::typeinf_options;
     use super::parser::parse;
     use super::syntax::{Coerce, Exp, Typ};
     use super::type_check::type_check;
-    use super::Options;
     trait PairOr {
         fn or(&self, other: Self) -> Self;
     }

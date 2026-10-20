@@ -1,5 +1,5 @@
-use super::syntax::*;
 use super::Closure;
+use super::syntax::*;
 use crate::pretty::Pretty;
 
 // Copied from jankscripten

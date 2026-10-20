@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::collections::hash_set::HashSet;
 
 lrlex::lrlex_mod!("lexer.l"); // effectively mod `lexer_l`
-                              // The generated parser trips clippy lints we can't fix at the source.
+// The generated parser trips clippy lints we can't fix at the source.
 #[allow(clippy::vec_init_then_push)]
 mod parser_y_gen {
     lrpar::lrpar_mod!("parser.y"); // effectively mod `parser_y`

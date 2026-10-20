@@ -28,7 +28,7 @@ fn lit_typ(lit: &Lit) -> Typ {
     match lit {
         Lit::Int(_) => Typ::Int,
         Lit::Bool(_) => Typ::Bool,
-        _ => panic!("unsupported literal {:?}", lit),
+        _ => panic!("unsupported literal {lit:?}"),
     }
 }
 

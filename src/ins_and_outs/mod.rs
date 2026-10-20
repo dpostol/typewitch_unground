@@ -24,8 +24,7 @@ pub fn typeinf(parsed: syntax::Exp) -> (syntax::Exp, syntax::Typ) {
     let (mut coerced, mut typ, coercions) = collect_coercions::compile_coercions(parsed);
     if DEBUG {
         println!(
-            "{}\ncoercions:\n{}",
-            coerced,
+            "{coerced}\ncoercions:\n{}",
             pretty::DisplayClosure(&coercions)
         );
     }

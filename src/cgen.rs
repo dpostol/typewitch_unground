@@ -1,7 +1,7 @@
+use super::Options;
 use super::parser::next_metavar;
 use super::syntax::*;
 use super::z3_state::Z3State;
-use super::Options;
 use im_rc::HashMap;
 use std::cell::RefCell;
 use z3::ast::{Ast, Bool, Dynamic};
@@ -61,7 +61,7 @@ impl<'a> State<'a> {
             Exp::Var(x) => {
                 let typ = env
                     .get(x)
-                    .unwrap_or_else(|| panic!("unbound identifier {}", x))
+                    .unwrap_or_else(|| panic!("unbound identifier {x}"))
                     .clone();
 
                 if self.options.rigid_vars {
@@ -434,7 +434,7 @@ impl<'a> State<'a> {
             let t = self.z3.vect_typ(t);
             t._eq(&self.z3.any_z3)
         } else {
-            panic!("missing case in negative_any {:?}", t)
+            panic!("missing case in negative_any {t:?}")
         }
     }
 

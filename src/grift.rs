@@ -2,7 +2,7 @@ use crate::syntax::*;
 use im_rc::HashMap;
 
 lrlex::lrlex_mod!("grift.l"); // effectively mod `grift_l`
-                              // The generated parser trips clippy lints we can't fix at the source.
+// The generated parser trips clippy lints we can't fix at the source.
 #[allow(clippy::vec_init_then_push)]
 mod grift_y_gen {
     lrpar::lrpar_mod!("grift.y"); // effectively mod `grift_y`
@@ -74,11 +74,11 @@ pub fn env() -> Env {
 #[cfg(test)]
 mod test {
     use super::parse;
+    use crate::Options;
     use crate::cgen::typeinf_options;
     use crate::syntax::*;
     use crate::tests_631::contains_coercions;
     use crate::type_check::tcheck;
-    use crate::Options;
 
     fn compile_verbose(orig: Exp) -> (Typ, Exp) {
         let env = super::env();
@@ -255,7 +255,9 @@ mod test {
     #[test]
     fn scheme_varnames() {
         assert_eq!(
-            exp_succeeds(parse("(define days-per-year : Float #i365.24) (define *saturn* #i-4.03523417114321381e-1) *saturn*")),
+            exp_succeeds(parse(
+                "(define days-per-year : Float #i365.24) (define *saturn* #i-4.03523417114321381e-1) *saturn*"
+            )),
             Typ::Float
         );
     }

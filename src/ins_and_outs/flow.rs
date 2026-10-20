@@ -1,5 +1,5 @@
-use super::syntax::*;
 use super::Closure;
+use super::syntax::*;
 
 /// provide Base and Comp (from Figure 4) (aka Def 3.9: 1)
 pub fn compute_closure(cs: Closure) -> Closure {
@@ -23,9 +23,7 @@ fn e(c: &mut Closure, t1: Typ, t2: Typ) {
     if t1 != t2 {
         assert!(
             !t1.is_base() || !t2.is_base(),
-            "flow should not produce base |> base coercions: {} |> {}",
-            t1,
-            t2
+            "flow should not produce base |> base coercions: {t1} |> {t2}"
         );
         c.insert((t1, t2));
     }
