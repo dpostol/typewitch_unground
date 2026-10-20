@@ -61,7 +61,7 @@ where
     <D as pretty::DocAllocator<'b, A>>::Doc: std::clone::Clone,
 {
     pp.concat(vec![
-        parens_if(pp, &*t1, t1.is_arr()),
+        parens_if(pp, t1, t1.is_arr()),
         pp.space(),
         pp.text("->"),
         pp.space(),

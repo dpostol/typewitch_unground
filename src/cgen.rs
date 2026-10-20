@@ -101,8 +101,8 @@ impl<'a> State<'a> {
             //                φ_1 && φ_2 && strengthen(T_1, α -> β) && weaken(β, γ)
             //                && T_2 = α
             Exp::App(e1, e2) => {
-                let (t1, phi1) = self.cgen(&env, e1);
-                let (t2, phi2) = self.cgen(&env, e2);
+                let (t1, phi1) = self.cgen(env, e1);
+                let (t2, phi2) = self.cgen(env, e2);
                 let alpha = next_metavar();
                 let beta = next_metavar();
                 let arr = Typ::Arr(Box::new(alpha.clone()), Box::new(beta.clone()));
@@ -120,7 +120,7 @@ impl<'a> State<'a> {
             //              && strengthen(T, uop.t) && weaken(uop.res, α)
             Exp::UnaryOp(op, e) => {
                 let (op_t, res) = op.typ();
-                let (t, phi1) = self.cgen(&env, e);
+                let (t, phi1) = self.cgen(env, e);
                 let phi2 = self.strengthen(t, op_t, e);
                 self.weaken(res, exp, phi1 & phi2)
             }
@@ -132,8 +132,8 @@ impl<'a> State<'a> {
             //                     && weaken(bop.res, α)
             Exp::BinaryOp(op, e1, e2) => {
                 let (op1, op2, res) = op.typ();
-                let (t1, phi1) = self.cgen(&env, e1);
-                let (t2, phi2) = self.cgen(&env, e2);
+                let (t1, phi1) = self.cgen(env, e1);
+                let (t2, phi2) = self.cgen(env, e2);
                 let phi3 = self.strengthen(t1, op1, &mut *e1) & self.strengthen(t2, op2, &mut *e2);
                 self.weaken(res, exp, phi1 & phi2 & phi3)
             }
@@ -142,7 +142,7 @@ impl<'a> State<'a> {
             // ---------------------------------------
             // Γ ⊢ let x = e1 in e2 => let x = e1 in e2, T_2, φ_1 && φ_2
             Exp::Let(x, e1, e2) => {
-                let (t1, phi1) = self.cgen(&env, e1);
+                let (t1, phi1) = self.cgen(env, e1);
                 let mut env = env.clone();
                 env.insert(x.clone(), t1);
                 let (t2, phi2) = self.cgen(&env, e2);
@@ -169,7 +169,7 @@ impl<'a> State<'a> {
             // Γ ⊢ e1 : T => coerce(T_1, T) e, T, φ_1 && ground(T_1) && ground(T)
             Exp::Ann(e, typ) => {
                 let (t1, phi1) = self.cgen(env, e);
-                let phi2 = self.ground(&t1) & self.ground(&typ);
+                let phi2 = self.ground(&t1) & self.ground(typ);
                 (typ.clone(), phi1 & phi2)
             }
             // Γ ⊢ e_1 => T_1, φ_1
@@ -181,8 +181,8 @@ impl<'a> State<'a> {
             //                                               T_1 = any)
             //                   && weaken(α, β)
             Exp::AddOverload(e1, e2) => {
-                let (t1, phi1) = self.cgen(&env, e1);
-                let (t2, phi2) = self.cgen(&env, e2);
+                let (t1, phi1) = self.cgen(env, e1);
+                let (t2, phi2) = self.cgen(env, e2);
                 let t1_z3 = self.t2z3(&t1);
                 let eq = t1_z3._eq(&self.t2z3(&t2));
                 let valid_type = t1_z3._eq(&self.z3.int_z3)
@@ -198,9 +198,9 @@ impl<'a> State<'a> {
             //                                 φ_1 && φ_2 && φ_3 &&
             //                                 strengthen(T_1, bool) && T_2 = T_3
             Exp::If(e1, e2, e3) => {
-                let (t1, phi1) = self.cgen(&env, e1);
-                let (t2, phi2) = self.cgen(&env, e2);
-                let (t3, phi3) = self.cgen(&env, e3);
+                let (t1, phi1) = self.cgen(env, e1);
+                let (t2, phi2) = self.cgen(env, e2);
+                let (t3, phi3) = self.cgen(env, e3);
                 let phi4 = self.strengthen(t1, Typ::Bool, e1) & self.t2z3(&t2)._eq(&self.t2z3(&t3));
                 (t2, phi1 & phi2 & phi3 & phi4)
             }
@@ -210,8 +210,8 @@ impl<'a> State<'a> {
             // Γ ⊢ e_1, e_2 => coerce((T_1, T_2), α, (e_1, e_2)), α,
             //                 φ_1 && φ_2 && weaken((T_1, T_2), α)
             Exp::Pair(e1, e2) => {
-                let (t1, phi1) = self.cgen(&env, e1);
-                let (t2, phi2) = self.cgen(&env, e2);
+                let (t1, phi1) = self.cgen(env, e1);
+                let (t2, phi2) = self.cgen(env, e2);
                 self.weaken(Typ::Pair(Box::new(t1), Box::new(t2)), exp, phi1 & phi2)
             }
             // Γ ⊢ e => e, T_1, φ_1
@@ -219,7 +219,7 @@ impl<'a> State<'a> {
             // Γ ⊢ fst e => coerce(α, γ) fst coerce(T_1, Pair(α,β), e), γ,
             //              φ_1 && strengthen(T_1, Pair(α,β)) && weaken(α, γ)
             Exp::Fst(e) => {
-                let (t1, phi1) = self.cgen(&env, e);
+                let (t1, phi1) = self.cgen(env, e);
                 let alpha = next_metavar();
                 let beta = next_metavar();
                 let phi2 =
@@ -231,7 +231,7 @@ impl<'a> State<'a> {
             // Γ ⊢ snd e => coerce(β, γ) snd coerce(T_1, Pair(α,β), e), γ,
             //              φ_1 && strengthen(T_1, Pair(α,β)) && weaken(β, γ)
             Exp::Snd(e) => {
-                let (t1, phi1) = self.cgen(&env, e);
+                let (t1, phi1) = self.cgen(env, e);
                 let alpha = next_metavar();
                 let beta = next_metavar();
                 let phi2 =
@@ -244,8 +244,8 @@ impl<'a> State<'a> {
             // Γ ⊢ e_1 :: e_2 => coerce(List(T_1), α, e_1 :: coerce(T_2, List(T_1), e_2)), α,
             //                   φ_1 && φ_2 && strengthen(T_2, List(T_1)) && weaken(List(T_1), α)
             Exp::Cons(e1, e2) => {
-                let (t1, phi1) = self.cgen(&env, e1);
-                let (t2, phi2) = self.cgen(&env, e2);
+                let (t1, phi1) = self.cgen(env, e1);
+                let (t2, phi2) = self.cgen(env, e2);
                 let list_typ = Typ::List(Box::new(t1.clone()));
                 let phi3 = self.strengthen(t2.clone(), list_typ.clone(), e2);
                 self.weaken(list_typ, exp, phi1 & phi2 & phi3)
@@ -381,9 +381,9 @@ impl<'a> State<'a> {
                 let (t3, phi) = self.cgen(env, e);
                 if self.options.optimizer {
                     self.solver
-                        .assert_soft(&self.t2z3(&t1)._eq(&self.t2z3(&t2)), 1, None);
+                        .assert_soft(&self.t2z3(t1)._eq(&self.t2z3(t2)), 1, None);
                 }
-                (t2.clone(), phi & self.t2z3(&t1)._eq(&self.t2z3(&t3)))
+                (t2.clone(), phi & self.t2z3(t1)._eq(&self.t2z3(&t3)))
             }
         }
     }
@@ -404,37 +404,37 @@ impl<'a> State<'a> {
     /// recursively evaluates. we only want to get the kind and its
     /// metavariables
     fn negative_any(&self, model: &z3::Model<'a>, t: &Dynamic<'a>) -> Bool<'a> {
-        if self.z3.is_int(model, &t)
-            || self.z3.is_unit(model, &t)
-            || self.z3.is_float(model, &t)
-            || self.z3.is_bool(model, &t)
-            || self.z3.is_str(model, &t)
-            || self.z3.is_char(model, &t)
-            || self.z3.is_any(model, &t)
+        if self.z3.is_int(model, t)
+            || self.z3.is_unit(model, t)
+            || self.z3.is_float(model, t)
+            || self.z3.is_bool(model, t)
+            || self.z3.is_str(model, t)
+            || self.z3.is_char(model, t)
+            || self.z3.is_any(model, t)
         {
             self.z3.true_z3()
-        } else if self.z3.is_arr(model, &t) {
-            let arg = self.z3.arr_arg(&t);
-            let ret = self.z3.arr_ret(&t);
+        } else if self.z3.is_arr(model, t) {
+            let arg = self.z3.arr_arg(t);
+            let ret = self.z3.arr_ret(t);
             arg._eq(&self.z3.any_z3) & self.negative_any(model, &ret)
-        } else if self.z3.is_list(model, &t) {
-            let t = self.z3.list_typ(&t);
+        } else if self.z3.is_list(model, t) {
+            let t = self.z3.list_typ(t);
             self.negative_any(model, &t)
-        } else if self.z3.is_pair(model, &t) {
-            let t1 = self.z3.pair1(&t);
-            let t2 = self.z3.pair2(&t);
+        } else if self.z3.is_pair(model, t) {
+            let t1 = self.z3.pair1(t);
+            let t2 = self.z3.pair2(t);
             self.negative_any(model, &t1) & self.negative_any(model, &t2)
-        } else if self.z3.is_box(model, &t) {
+        } else if self.z3.is_box(model, t) {
             // A box is a negative position, no matter what is_neg says. For
             // example, p = box 5 may be put in a context that says `boxset! p
             // true`. so p must have type box any
-            let t = self.z3.box_typ(&t);
+            let t = self.z3.box_typ(t);
             t._eq(&self.z3.any_z3)
-        } else if self.z3.is_vect(model, &t) {
-            let t = self.z3.vect_typ(&t);
+        } else if self.z3.is_vect(model, t) {
+            let t = self.z3.vect_typ(t);
             t._eq(&self.z3.any_z3)
         } else {
-            return panic!("missing case in negative_any {:?}", t);
+            panic!("missing case in negative_any {:?}", t)
         }
     }
 
@@ -561,13 +561,12 @@ fn annotate_typ(env: &HashMap<u32, Typ>, t: &mut Typ) {
     // if type already exists, nothing to do
     match t {
         Typ::Metavar(i) => {
-            match env.get(i) {
-                Some(s) => *t = s.clone(),
-                // there is no constraint whatsoever on what this type
-                // can be. Migeed and Parsberg seem to choose Int in this
-                // case, though i haven't read enough to know if they
-                // explicitly mention that
-                None => (),
+            // if there is no entry, there is no constraint whatsoever on
+            // what this type can be. Migeed and Parsberg seem to choose Int
+            // in this case, though i haven't read enough to know if they
+            // explicitly mention that
+            if let Some(s) = env.get(i) {
+                *t = s.clone();
             }
         }
         Typ::Arr(t1, t2) | Typ::Pair(t1, t2) => {

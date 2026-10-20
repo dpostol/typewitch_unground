@@ -40,13 +40,6 @@ struct Rejection {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct RuntimeError {
-    /// Output from the tool
-    message: Option<String>,
-    program: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 struct Benchmark {
     file: String,
     #[serde(skip_serializing_if = "is_none")]
@@ -56,7 +49,7 @@ struct Benchmark {
     #[serde(default)] // default is zero
     num_stars: usize,
     #[serde(skip_serializing_if = "is_none")]
-    assert_compatible: Option<String>
+    assert_compatible: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -71,11 +64,11 @@ struct Benchmarks {
 }
 
 fn is_false(b: &bool) -> bool {
-    return !b;
+    !b
 }
 
 fn is_none<T>(v: &Option<T>) -> bool {
-    return v.is_none();
+    v.is_none()
 }
 
 fn count_stars(e: &super::syntax::Exp) -> usize {
@@ -101,7 +94,7 @@ fn get_outcome<'a>(
     tool_name: &str,
     results: &'a mut std::collections::HashMap<String, Outcome>,
 ) -> &'a mut Outcome {
-    if results.contains_key(tool_name) == false {
+    if !results.contains_key(tool_name) {
         results.insert(
             tool_name.to_string(),
             Outcome {
@@ -111,7 +104,7 @@ fn get_outcome<'a>(
             },
         );
     }
-    return results.get_mut(tool_name).unwrap();
+    results.get_mut(tool_name).unwrap()
 }
 
 // Run the program after coercion insertion. True means it ran successfully.
@@ -130,13 +123,14 @@ fn eval(code: String, num_stars: Option<&mut usize>) -> Option<bool> {
     }
 }
 
-
 fn check_if_compatible(migrated: &str, expected: &Option<String>) -> bool {
     match expected {
         None => false,
         Some(expected) => {
-            let expected_ast = super::parser::parse(expected).expect("could not parse expected compatible");
-            let migrated_ast = super::parser::parse(migrated).expect("coud not parse migrated compatible");
+            let expected_ast =
+                super::parser::parse(expected).expect("could not parse expected compatible");
+            let migrated_ast =
+                super::parser::parse(migrated).expect("coud not parse migrated compatible");
             super::precision::exp_lt(&expected_ast, &migrated_ast)
         }
     }
@@ -177,10 +171,10 @@ fn benchmark_one(tool: &MigrationTool, benchmark: &mut Benchmark) {
         .unwrap();
 
     // Get a pointer to the outcome where we will store the result.
-    let mut outcome = get_outcome(&tool.title, &mut benchmark.results);
+    let outcome = get_outcome(&tool.title, &mut benchmark.results);
 
     // Timeout or error from the migration tool.
-    if migrate_ok == false {
+    if !migrate_ok {
         outcome.result = Some(Expect::Rejection(Rejection {
             stdout: tool_stdout,
             stderr: tool_stderr,
@@ -194,11 +188,12 @@ fn benchmark_one(tool: &MigrationTool, benchmark: &mut Benchmark) {
 
     // If benchmark.assert_compatible is present, it a program that is more type-precise
     // than the original program. Verify that this is true and blow up if it is not the case.
-    if check_if_compatible(&original_program, &benchmark.assert_compatible) == false &&
-       benchmark.assert_compatible.is_some() {
-           outcome.result = Some(Expect::Disaster);
-           println!("assert_compatible is not more precise than the original program");
-           return;
+    if !check_if_compatible(&original_program, &benchmark.assert_compatible)
+        && benchmark.assert_compatible.is_some()
+    {
+        outcome.result = Some(Expect::Disaster);
+        println!("assert_compatible is not more precise than the original program");
+        return;
     }
 
     // Flag that determines if the original program runs without error. Also, store the number of
@@ -211,7 +206,8 @@ fn benchmark_one(tool: &MigrationTool, benchmark: &mut Benchmark) {
 
     // Check if the result of migration is less precise than what is known to be a maximally precise
     // version of the original program.
-    let result_is_known_compatible = check_if_compatible(&tool_stdout, &benchmark.assert_compatible);
+    let result_is_known_compatible =
+        check_if_compatible(&tool_stdout, &benchmark.assert_compatible);
 
     match &benchmark.context {
         None => match (original_runs_ok, migrated_runs_ok) {
@@ -365,25 +361,28 @@ pub fn benchmark_main(src_file: impl AsRef<str>, ignore: &[String]) -> Result<()
     let src_text = std::fs::read_to_string(src_file.as_ref())?;
     let mut benchmarks: Benchmarks = serde_yaml::from_str(&src_text).expect("syntax error");
     // Filter out tools that are in the ignore list.
-    benchmarks.tools.retain(|tool| false == ignore.contains(&tool.title));
-    for mut b in benchmarks.benchmarks.iter_mut() {
+    benchmarks
+        .tools
+        .retain(|tool| !ignore.contains(&tool.title));
+    for b in benchmarks.benchmarks.iter_mut() {
         // Remove the expected outcomes for ignored tools, or we panic later.
-        b.results.retain(|tool_title, _| false == ignore.contains(tool_title));
+        b.results
+            .retain(|tool_title, _| !ignore.contains(tool_title));
         for t in &benchmarks.tools {
             eprintln!("Running {} on {} ...", t.title, b.file);
-            benchmark_one(&t, &mut b);
+            benchmark_one(t, b);
         }
     }
 
     println!("{}", serde_yaml::to_string(&benchmarks).unwrap());
-    return Ok(());
+    Ok(())
 }
 
 pub fn details_latex(src_file: impl AsRef<str>) -> Result<(), std::io::Error> {
     let src_text = std::fs::read_to_string(src_file.as_ref())?;
     let benchmarks: Benchmarks = serde_yaml::from_str(&src_text).expect("syntax error");
     for b in benchmarks.benchmarks {
-        println!("\\subsection*{{{}}}\n", &b.file.replace("_", "-"));
+        println!("\\subsection*{{{}}}\n", b.file.replace("_", "-"));
         for t in &benchmarks.tools {
             let result = b.results.get(&t.title).unwrap();
             let migration = result
@@ -399,11 +398,11 @@ pub fn details_latex(src_file: impl AsRef<str>) -> Result<(), std::io::Error> {
                 Expect::Unusable => "Unusable",
                 Expect::Restricted { .. } => "Restricted",
             };
-            println!("\\paragraph{{{}}}: {}", &t.title, outcome_str);
+            println!("\\paragraph{{{}}}: {}", t.title, outcome_str);
             println!("\\begin{{lstlisting}}");
             println!("{}", migration);
             println!("\\end{{lstlisting}}\n");
         }
     }
-    return Ok(());
+    Ok(())
 }

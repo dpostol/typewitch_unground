@@ -41,7 +41,7 @@ impl<'a> Z3State<'a> {
         }
     }
     pub fn typ(cxt: &'a Context) -> DatatypeSort<'a> {
-        DatatypeBuilder::new(&cxt, "Typ")
+        DatatypeBuilder::new(cxt, "Typ")
             .variant("Int", vec![])
             .variant("Bool", vec![])
             .variant("Str", vec![])
@@ -126,7 +126,7 @@ impl<'a> Z3State<'a> {
 
     fn is_variant(&self, i: usize, model: &Model, e: &Dynamic) -> bool {
         model
-            .eval(&self.typ.variants[i].tester.apply(&[&e]).as_bool().unwrap())
+            .eval(&self.typ.variants[i].tester.apply(&[e]).as_bool().unwrap())
             .unwrap()
             .as_bool()
             .unwrap()

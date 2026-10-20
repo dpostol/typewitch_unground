@@ -247,7 +247,7 @@ impl Pretty for Exp {
                 e.pretty(pp),
             ]),
             Exp::App(e1, e2) => {
-                let e2 = skip_coercion(&**e2);
+                let e2 = skip_coercion(e2);
                 pp.concat(vec![
                     parens_if(pp, &**e1, e1.is_fun_exp()),
                     pp.softline(),

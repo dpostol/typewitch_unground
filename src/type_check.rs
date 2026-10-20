@@ -23,7 +23,7 @@ pub fn tcheck(env: &Env, exp: &Exp) -> Result<Typ, String> {
         Exp::Var(x) => env
             .get(x)
             .ok_or(format!("unbound identifier {}", x))
-            .map(Clone::clone),
+            .cloned(),
         // Γ,x:T_1 ⊢ e : T_2
         // ---------------------------------------
         // Γ ⊢ fun (x : T_1) . e : T_1 -> T_2
@@ -47,11 +47,11 @@ pub fn tcheck(env: &Env, exp: &Exp) -> Result<Typ, String> {
         // ----------------------------------------------
         // Γ ⊢ e_1 e_2 : T_2
         Exp::App(e1, e2) => {
-            let t1_to_t2 = tcheck(&env, e1)?;
-            let t1 = tcheck(&env, e2)?;
+            let t1_to_t2 = tcheck(env, e1)?;
+            let t1 = tcheck(env, e2)?;
             match t1_to_t2 {
                 Typ::Arr(arr_t1, arr_t2) => {
-                    should_match(&*arr_t1, t1)?;
+                    should_match(&arr_t1, t1)?;
                     Ok(*arr_t2)
                 }
                 _ => Err("expected arrow in application".to_string()),
@@ -62,7 +62,7 @@ pub fn tcheck(env: &Env, exp: &Exp) -> Result<Typ, String> {
         // Γ ⊢ unop e : unop.typ().1
         Exp::UnaryOp(op, e) => {
             let (arg, ret) = op.typ();
-            should_match(&arg, tcheck(&env, e)?)?;
+            should_match(&arg, tcheck(env, e)?)?;
             Ok(ret)
         }
         // Γ ⊢ e_1 : op.typ().0
@@ -71,8 +71,8 @@ pub fn tcheck(env: &Env, exp: &Exp) -> Result<Typ, String> {
         // Γ ⊢ binop e_1 e_2 : op.typ().2
         Exp::BinaryOp(op, e1, e2) => {
             let (t1, t2, res) = op.typ();
-            should_match(&t1, tcheck(&env, e1)?)?;
-            should_match(&t2, tcheck(&env, e2)?)?;
+            should_match(&t1, tcheck(env, e1)?)?;
+            should_match(&t2, tcheck(env, e2)?)?;
             Ok(res)
         }
         // Γ ⊢ e1 : T_1
@@ -80,7 +80,7 @@ pub fn tcheck(env: &Env, exp: &Exp) -> Result<Typ, String> {
         // ---------------------------------------
         // Γ ⊢ let x = e1 in e2 : T_2
         Exp::Let(x, e1, e2) => {
-            let t1 = tcheck(&env, e1)?;
+            let t1 = tcheck(env, e1)?;
             let mut env = env.clone();
             env.insert(x.clone(), t1);
             let t2 = tcheck(&env, e2)?;
@@ -109,8 +109,8 @@ pub fn tcheck(env: &Env, exp: &Exp) -> Result<Typ, String> {
         // ----------------------------------------------
         // Γ ⊢ e_1 +? e_2 : T_1
         Exp::AddOverload(e1, e2) => {
-            let t1 = tcheck(&env, e1)?;
-            should_match(&t1, tcheck(&env, e2)?)?;
+            let t1 = tcheck(env, e1)?;
+            should_match(&t1, tcheck(env, e2)?)?;
             match t1 {
                 Typ::Int | Typ::Str | Typ::Any => Ok(t1),
                 _ => Err("add overload not int, str, or any".to_string()),
@@ -122,9 +122,9 @@ pub fn tcheck(env: &Env, exp: &Exp) -> Result<Typ, String> {
         // ----------------------------------------------
         // Γ ⊢ if e_1 then e_2 else e_3 : T_1
         Exp::If(e1, e2, e3) => {
-            should_match(&Typ::Bool, tcheck(&env, e1)?)?;
-            let t1 = tcheck(&env, e2)?;
-            should_match(&t1, tcheck(&env, e3)?)?;
+            should_match(&Typ::Bool, tcheck(env, e1)?)?;
+            let t1 = tcheck(env, e2)?;
+            should_match(&t1, tcheck(env, e3)?)?;
             Ok(t1)
         }
         // Γ ⊢ e_1 : T_1
@@ -132,8 +132,8 @@ pub fn tcheck(env: &Env, exp: &Exp) -> Result<Typ, String> {
         // ----------------------------------------------
         // Γ ⊢ e_1, e_2 : (T_1, T_2)
         Exp::Pair(e1, e2) => {
-            let t1 = tcheck(&env, e1)?;
-            let t2 = tcheck(&env, e2)?;
+            let t1 = tcheck(env, e1)?;
+            let t2 = tcheck(env, e2)?;
             Ok(Typ::Pair(Box::new(t1), Box::new(t2)))
         }
         // Γ ⊢ e : Pair(T_1, T_2)
@@ -162,8 +162,8 @@ pub fn tcheck(env: &Env, exp: &Exp) -> Result<Typ, String> {
         // ----------------------------------------------
         // Γ ⊢ e_1 :: e_2 : List(T_1)
         Exp::Cons(e1, e2) => {
-            let t1 = tcheck(&env, e1)?;
-            should_match(&Typ::List(Box::new(t1)), tcheck(&env, e2)?)
+            let t1 = tcheck(env, e1)?;
+            should_match(&Typ::List(Box::new(t1)), tcheck(env, e2)?)
         }
         // ----------------------------------------------
         // Γ ⊢ empty: T : List(T)

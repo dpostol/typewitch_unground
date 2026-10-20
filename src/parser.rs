@@ -3,9 +3,15 @@ use std::cell::RefCell;
 use std::collections::hash_set::HashSet;
 
 lrlex::lrlex_mod!("lexer.l"); // effectively mod `lexer_l`
-lrpar::lrpar_mod!("parser.y"); // effectively mod `parser_y`
+                              // The generated parser trips clippy lints we can't fix at the source.
+#[allow(clippy::vec_init_then_push)]
+mod parser_y_gen {
+    lrpar::lrpar_mod!("parser.y"); // effectively mod `parser_y`
+    pub use parser_y::*;
+}
+use parser_y_gen as parser_y;
 
-thread_local!(static NEXT_METAVAR: RefCell<u32> = RefCell::new(0));
+thread_local!(static NEXT_METAVAR: RefCell<u32> = const { RefCell::new(0) });
 thread_local!(static PARSER_WARNINGS: RefCell<HashSet<String>> = RefCell::new(HashSet::new()));
 
 pub fn next_metavar() -> Typ {
@@ -46,14 +52,14 @@ pub fn parse(input: impl AsRef<str>) -> Result<Exp, String> {
     let lexer = lexerdef.lexer(input);
     let (res, errs) = parser_y::parse(&lexer);
     let mut errors = String::new();
-    let did_err = errs.is_empty() == false;
+    let did_err = !errs.is_empty();
     for err in errs.into_iter() {
-        errors.push_str(&format!("{}", err.pp(&lexer, &|t| parser_y::token_epp(t))));
+        errors.push_str(&err.pp(&lexer, &|t| parser_y::token_epp(t)).to_string());
     }
 
     match res {
         Some(Ok(exp)) => {
-            if did_err == false {
+            if !did_err {
                 Ok(exp)
             } else {
                 Err(errors)

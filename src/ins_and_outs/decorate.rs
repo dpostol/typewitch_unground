@@ -5,29 +5,29 @@ pub fn decorate(exp: &mut Exp, solution: &HashMap<Typ, Typ>) {
     match exp {
         Exp::Lit(_) | Exp::Var(_) => (),
         Exp::Assign(_, e) => {
-            decorate(e, &solution);
+            decorate(e, solution);
         }
         Exp::Fun(_, t1, e, t2) => {
-            decorate_typ(t1, &solution);
-            decorate_typ(t2, &solution);
-            decorate(e, &solution);
+            decorate_typ(t1, solution);
+            decorate_typ(t2, solution);
+            decorate(e, solution);
         }
         Exp::App(e1, e2) | Exp::Seq(e1, e2) | Exp::Add(e1, e2) => {
-            decorate(e1, &solution);
-            decorate(e2, &solution);
+            decorate(e1, solution);
+            decorate(e2, solution);
         }
         Exp::Coerce(t1, t2, e) => {
-            decorate_typ(t1, &solution);
-            decorate_typ(t2, &solution);
-            decorate(e, &solution);
+            decorate_typ(t1, solution);
+            decorate_typ(t2, solution);
+            decorate(e, solution);
             if t1 == t2 {
                 *exp = e.take();
             }
         }
         Exp::If(e1, e2, e3) => {
-            decorate(e1, &solution);
-            decorate(e2, &solution);
-            decorate(e3, &solution);
+            decorate(e1, solution);
+            decorate(e2, solution);
+            decorate(e3, solution);
         }
     }
 }

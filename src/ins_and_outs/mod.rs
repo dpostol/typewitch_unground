@@ -17,8 +17,7 @@ pub fn typeinf_portable(exp: crate::syntax::Exp) -> crate::syntax::Exp {
     let internal_e =
         to_from_portable_ast::from_exp(&exp).expect("unsupported features in input program");
     let (checked_e, _) = typeinf(internal_e);
-    return to_from_portable_ast::to_exp(checked_e)
-        .expect("migrated program has unsupported features");
+    to_from_portable_ast::to_exp(checked_e).expect("migrated program has unsupported features")
 }
 
 pub fn typeinf(parsed: syntax::Exp) -> (syntax::Exp, syntax::Typ) {
@@ -54,8 +53,7 @@ mod tests {
     fn parse(s: &str) -> Exp {
         let mut portable_input_e = crate::parser::parse(s).unwrap();
         portable_input_e.fresh_types();
-        return super::to_from_portable_ast::from_exp(&portable_input_e)
-            .expect("unsupported features");
+        super::to_from_portable_ast::from_exp(&portable_input_e).expect("unsupported features")
     }
 
     pub fn contains_coercions(e: Exp) -> bool {
@@ -73,7 +71,7 @@ mod tests {
     }
     pub fn succeeds(program: &str) {
         let orig = parse(program);
-        println!("\nOriginal program:\n{}", &orig);
+        println!("\nOriginal program:\n{}", orig);
         let e = typeinf(orig);
         println!("\nAfter type inference:\n{}", e.1);
         let coercions = contains_coercions(e.0);
@@ -81,7 +79,7 @@ mod tests {
     }
     pub fn coerces(program: &str) {
         let orig = parse(program);
-        println!("\nOriginal program:\n{}", &orig);
+        println!("\nOriginal program:\n{}", orig);
         let e = typeinf(orig);
         println!("\nAfter type inference:\n{}", e.1);
         let coercions = contains_coercions(e.0);

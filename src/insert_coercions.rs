@@ -74,7 +74,7 @@ fn ins(mut env: Env, exp: &mut Exp) -> R {
             let t = env.get(x).ok_or("unbound identifier".to_string())?.clone();
             Ok(t)
         }
-        Exp::Lit(l) => Ok(lit_typ(&l)),
+        Exp::Lit(l) => Ok(lit_typ(l)),
         Exp::Fun(x, t1, e) => {
             env.insert(x.clone(), t1.clone());
             let t2 = ins(env, e)?;
@@ -121,7 +121,7 @@ fn ins(mut env: Env, exp: &mut Exp) -> R {
         }
         Exp::Ann(e1, t1) => {
             let t2 = ins(env.clone(), e1)?;
-            let k = coerce(&t2, &t1);
+            let k = coerce(&t2, t1);
             let t_result = t1.take();
             *exp = Exp::PrimCoerce(k, Box::new(e1.take()));
             Ok(t_result)
@@ -137,5 +137,5 @@ fn ins(mut env: Env, exp: &mut Exp) -> R {
 /// expected failures, e.g., if the program has a free variable.
 pub fn insert_coercions(exp: &mut Exp) -> Result<(), String> {
     ins(Env::new(), exp)?;
-    return Ok(());
+    Ok(())
 }

@@ -138,21 +138,22 @@ fn tran_and_exp_fun(cs: Closure) -> Closure {
                 // surely this doesn't have x be O(n^2)? check complexity analysis
                 for c in cs.clone().into_iter() {
                     match c {
-                        (x2, t) if x2 == x && k.dyn_consistent(&t) => {
+                        (x2, t)
+                            if x2 == x && k.dyn_consistent(&t)
                             // it isn't seen in the paper formulation because
                             // they only have one base type, but a base |> base
                             // makes no sense. it doesn't cause any problems
                             // based on the rules, but it makes closures bigger
                             // than they have to be
-                            if !(k.is_base() && t.is_base()) {
-                                p(
-                                    &mut expanded,
-                                    "Tran",
-                                    vec![(&k, &x), (&x2, &t.clone())],
-                                    k.clone(),
-                                    t,
-                                );
-                            }
+                            && !(k.is_base() && t.is_base()) =>
+                        {
+                            p(
+                                &mut expanded,
+                                "Tran",
+                                vec![(&k, &x), (&x2, &t.clone())],
+                                k.clone(),
+                                t,
+                            );
                         }
                         _ => (),
                     }
@@ -172,34 +173,31 @@ fn tran_and_exp_fun(cs: Closure) -> Closure {
 fn split_fun(cs: Closure) -> Closure {
     let mut expanded = cs.clone();
     for c in cs.clone().into_iter() {
-        match c {
-            // SplitFun
-            // TODO(luna): potential optimization: if any t[12]p? is_arr, then
-            // repeat, but if it never happens, don't bother checking equality
-            // and exit
-            (Typ::Arr(t1, t2), Typ::Arr(t1p, t2p)) => {
-                p(
-                    &mut expanded,
-                    "SplitFun",
-                    vec![(
-                        &Typ::Arr(t1.clone(), t2.clone()),
-                        &Typ::Arr(t1p.clone(), t2p.clone()),
-                    )],
-                    *t1p.clone(),
-                    *t1.clone(),
-                );
-                p(
-                    &mut expanded,
-                    "SplitFun",
-                    vec![(
-                        &Typ::Arr(t1.clone(), t2.clone()),
-                        &Typ::Arr(t1p.clone(), t2p.clone()),
-                    )],
-                    *t2.clone(),
-                    *t2p.clone(),
-                );
-            }
-            _ => (),
+        // SplitFun
+        // TODO(luna): potential optimization: if any t[12]p? is_arr, then
+        // repeat, but if it never happens, don't bother checking equality
+        // and exit
+        if let (Typ::Arr(t1, t2), Typ::Arr(t1p, t2p)) = c {
+            p(
+                &mut expanded,
+                "SplitFun",
+                vec![(
+                    &Typ::Arr(t1.clone(), t2.clone()),
+                    &Typ::Arr(t1p.clone(), t2p.clone()),
+                )],
+                *t1p.clone(),
+                *t1.clone(),
+            );
+            p(
+                &mut expanded,
+                "SplitFun",
+                vec![(
+                    &Typ::Arr(t1.clone(), t2.clone()),
+                    &Typ::Arr(t1p.clone(), t2p.clone()),
+                )],
+                *t2.clone(),
+                *t2p.clone(),
+            );
         }
     }
     if cs != expanded {

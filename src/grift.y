@@ -2,7 +2,7 @@
 %%
 
 program -> Vec<Toplevel> :
-    tl { let mut v = Vec::new(); v.push($1); v }
+    tl { vec![$1] }
   | program tl { let mut v = $1; v.push($2); v }
 ;
 
@@ -18,7 +18,7 @@ tl -> Toplevel :
 
 exps -> Vec<Exp> :
       exps exp { let mut v = $1; v.push($2); v }
-    | exp      { let mut v = Vec::new(); v.push($1); v }
+    | exp      { vec![$1] }
 ;
 
 exp -> Exp :
@@ -122,7 +122,7 @@ bindings -> Vec<(String, Option<Typ>, Exp)> :
 
 nonempty_bindings -> Vec<(String, Option<Typ>, Exp)> :
       nonempty_bindings binding { let mut v = $1; v.push($2); v }
-    | binding                   { let mut v = Vec::new(); v.push($1); v }
+    | binding                   { vec![$1] }
 ;
 
 binding -> (String, Option<Typ>, Exp) :
@@ -137,7 +137,7 @@ formals -> Vec<(String, Typ)> :
 
 nonempty_formals -> Vec<(String, Typ)> :
      nonempty_formals formal { let mut v = $1; v.push($2); v } 
-   |                  formal { let mut v = Vec::new(); v.push($1); v }
+   |                  formal { vec![$1] }
 ;
 
 formal -> (String, Typ) :
@@ -152,7 +152,7 @@ repeat_acc -> (Typ, Exp) :
 
 switch_cases -> Vec<(Vec<i32>, Exp)> :
     switch_cases switch_case { let mut v = $1; v.push($2); v }
-  |              switch_case { let mut v = Vec::new(); v.push($1); v }
+  |              switch_case { vec![$1] }
 ;
 
 switch_case -> (Vec<i32>, Exp) :
@@ -170,7 +170,7 @@ cond_case -> (Exp, Exp) :
 
 typs -> Vec<Typ> :
     typs typ  { let mut v = $1; v.push($2); v }
-  | typ       { let mut v = Vec::new(); v.push($1); v }
+  | typ       { vec![$1] }
   ;
 
 typ -> Typ :
@@ -215,7 +215,7 @@ f64 -> f64 :
 
 ints -> Vec<i32> :
     ints i32 { let mut v = $1; v.push($2); v }
-  | i32      { let mut v = Vec::new(); v.push($1); v }
+  | i32      { vec![$1] }
 ;
 
 i32 -> i32 :

@@ -74,7 +74,7 @@ impl Typ {
 
     /// Generates a right-associated, unit-terminated tuple type
     pub fn tuples(typs: Vec<Typ>) -> Self {
-        if typs.len() == 0 {
+        if typs.is_empty() {
             Typ::Unit
         } else if typs.len() == 1 {
             Typ::Pair(
@@ -320,7 +320,7 @@ impl Exp {
             let mut ctr = num_exps - 1;
             for exp in exps {
                 res = Exp::Let(format!("__begin{}", ctr), Box::new(exp), Box::new(res));
-                ctr = ctr - 1;
+                ctr -= 1;
             }
             res
         }
@@ -361,7 +361,7 @@ impl Exp {
     ///
     /// Returns unit or the sole type itself when given 0 or 1 `typs`
     pub fn pairs(exps: Vec<Exp>) -> Self {
-        if exps.len() == 0 {
+        if exps.is_empty() {
             Exp::Lit(Lit::Unit)
         } else if exps.len() == 1 {
             Exp::Pair(
@@ -383,7 +383,7 @@ impl Exp {
         let mut proj = self;
         while n > 0 {
             proj = Exp::Snd(Box::new(proj));
-            n = n - 1;
+            n -= 1;
         }
         Exp::Fst(Box::new(proj))
     }
@@ -414,7 +414,7 @@ impl Exp {
     }
 
     fn one_of_ints(val: &Exp, ints: Vec<i32>) -> Self {
-        assert!(ints.len() >= 1);
+        assert!(!ints.is_empty());
 
         let mut ints = ints.into_iter();
         let mut e = Exp::BinaryOp(
@@ -593,10 +593,9 @@ impl Exp {
                 }
             }
             (Exp::LetRec(bindings1, e1), Exp::LetRec(bindings2, e2)) => {
-                bindings1.iter().zip(bindings2.iter()).fold(
-                    Ok(()),
-                    |acc, ((id1i, t1i, e1i), (id2i, t2i, e2i))| {
-                        acc?;
+                bindings1.iter().zip(bindings2.iter()).try_fold(
+                    (),
+                    |(), ((id1i, t1i, e1i), (id2i, t2i, e2i))| {
                         e1i.matches_roughly(e2i)?;
                         if t2i.is_metavar() || t1i == t2i {
                             Ok(())
