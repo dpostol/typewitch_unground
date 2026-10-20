@@ -16,7 +16,7 @@ fn tcheck(env: &Env, exp: &Exp) -> Result<Typ, String> {
         // Γ ⊢ x : Γ(x)
         Exp::Var(x) => env
             .get(x)
-            .ok_or(format!("unbound identifier {}", x))
+            .ok_or(format!("unbound identifier {x}"))
             .map(Clone::clone),
         // Γ,x:T_1 ⊢ e : T_2
         // ---------------------------------------
@@ -211,5 +211,5 @@ fn should_match(t1: &Typ, t2: Typ) -> Result<Typ, String> {
 }
 
 fn mismatched<T>(t1: &Typ, t2: &Typ) -> Result<T, String> {
-    Err(format!("expected {} got {}", t1, t2))
+    Err(format!("expected {t1} got {t2}"))
 }

@@ -1,5 +1,5 @@
-use super::syntax::*;
 use super::Closure;
+use super::syntax::*;
 use crate::pretty::Pretty;
 
 // Copied from jankscripten
@@ -61,7 +61,7 @@ where
     <D as pretty::DocAllocator<'b, A>>::Doc: std::clone::Clone,
 {
     pp.concat(vec![
-        parens_if(pp, &*t1, t1.is_arr()),
+        parens_if(pp, t1, t1.is_arr()),
         pp.space(),
         pp.text("->"),
         pp.space(),
@@ -82,7 +82,8 @@ fn greek(i: u32) -> String {
         // 0x03b1 is α
         std::char::from_u32(0x03b1 + i).unwrap().to_string()
     } else {
-        format!("⦉{}⦊", i - num_greek_chars)
+        let n = i - num_greek_chars;
+        format!("⦉{n}⦊")
     }
 }
 

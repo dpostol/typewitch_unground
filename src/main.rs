@@ -99,7 +99,7 @@ pub struct Opts {
     unsafe_mode: bool,
     ///The ungrounded version of the algorithm
     #[clap(long = "ungrounded")]
-    ungrounded : bool,
+    ungrounded: bool,
     /// All uses of a variable have the same type (by default, variables can be weakened)
     #[clap(long = "rigid-vars")]
     rigid_variables: bool,
@@ -170,19 +170,21 @@ fn main() -> Result<()> {
         }
         SubCommand::LatexBenchmarks(opts) => benchmark::details_latex(&opts.input),
         SubCommand::LatexBenchmarkSummary(opts) => benchmark::summarize_latex(&opts.input),
-            }
+    }
 }
 
 fn eval_main(opts: EvalOpts) -> Result<()> {
     let src_txt = std::fs::read_to_string(opts.input)?;
     let mut src_ast = parser::parse(&src_txt).expect("parse error");
     insert_coercions::insert_coercions(&mut src_ast).unwrap();
-    
-    println!("With coercions:\n{}", &src_ast);
-    
+
+    if opts.show_inserted_coercions {
+        println!("With coercions:\n{src_ast}");
+    }
+
     match eval::eval(src_ast) {
         Ok(_) => println!("OK"),
-        Err(s) => println!("{}", s),
+        Err(s) => println!("{s}"),
     };
     Ok(())
 }
@@ -242,28 +244,27 @@ fn migrate_main(config: Opts) -> Result<()> {
 
     if options.debug {
         eprintln!("Parsed program:");
-        eprintln!("{}", parsed);
+        eprintln!("{parsed}");
     }
     let inferred = if config.ins_and_outs {
         parsed.fresh_types();
         ins_and_outs::typeinf_portable(parsed)
     } else {
-      	cgen::typeinf_options(parsed, &env, options).unwrap()
+        cgen::typeinf_options(parsed, &env, options).unwrap()
     };
 
     if !config.skip_type_check {
-        let typ = type_check::tcheck(&env, &inferred)
-            .map_err(|e| Error::new(ErrorKind::Other, format!("{}", e)))?;
+        let typ = type_check::tcheck(&env, &inferred).map_err(|e| Error::other(e.to_string()))?;
         if options.debug {
             eprintln!("Inferred type:");
-            eprintln!("{}", typ);
+            eprintln!("{typ}");
         }
     }
 
     match config.compare {
         None => {
             match language {
-                Parser::Empty => println!("{}", &inferred),
+                Parser::Empty => println!("{inferred}"),
                 Parser::Grift => inferred.print_id_types(),
             }
             Ok(())
@@ -277,7 +278,7 @@ fn migrate_main(config: Opts) -> Result<()> {
                     Ok(())
                 }
                 Err(e) => {
-                    println!("{}", e);
+                    println!("{e}");
                     std::process::exit(1);
                 }
             }
@@ -287,11 +288,11 @@ fn migrate_main(config: Opts) -> Result<()> {
 
 #[cfg(test)]
 mod tests_631 {
+    use super::Options;
     use super::cgen::typeinf_options;
     use super::parser::parse;
     use super::syntax::{Coerce, Exp, Typ};
     use super::type_check::type_check;
-    use super::Options;
     trait PairOr {
         fn or(&self, other: Self) -> Self;
     }
@@ -306,7 +307,7 @@ mod tests_631 {
             Coerce::Id => (false, false),
             Coerce::Seq(a, b) => coerce_contains_coercions(*a).or(coerce_contains_coercions(*b)),
             Coerce::Tag(_) => (true, false),
-            Coerce::Untag(_) => (false, true),
+            Coerce::Untag(_, _) => (false, true),
             Coerce::Wrap(..) => panic!("wrap shouldn't happen in TypeWhich"),
         }
     }
@@ -377,13 +378,15 @@ mod tests_631 {
     }
     fn compile_verbose(mut orig: Exp) -> (Typ, Exp) {
         orig.fresh_types();
-        println!("\nOriginal program:\n{}", &orig);
-        let mut options = Options::default();
-        options.debug = true;
+        println!("\nOriginal program:\n{orig}");
+        let options = Options {
+            debug: true,
+            ..Default::default()
+        };
         let e = typeinf_options(orig, &Default::default(), options).unwrap();
-        println!("\nAfter type inference:\n{}", e);
+        println!("\nAfter type inference:\n{e}");
         let t = type_check(&e).expect("failed to typecheck");
-        println!("\nProgram type:\n{}", t);
+        println!("\nProgram type:\n{t}");
         (t, e)
     }
     pub fn exp_succeeds(orig: Exp) -> Typ {
@@ -561,16 +564,16 @@ mod tests_migeed_and_parsberg {
     fn assert_maximal(program: &str, annotated: &str) {
         let mut orig = parse(program).unwrap();
         orig.fresh_types();
-        println!("\nOriginal program:\n{}", &orig);
+        println!("\nOriginal program:\n{orig}");
         let e = typeinf(orig).expect("type inference failed on the original program");
-        println!("\nAfter type inference:\n{}", e);
+        println!("\nAfter type inference:\n{e}");
         let correct = typeinf(parse(annotated).unwrap())
             .expect("type inference failed on the expected program");
         println!(
             "\nProgram type:\n{}",
             type_check(&e).expect("failed to typecheck")
         );
-        println!("\nCorrect:\n{}", correct);
+        println!("\nCorrect:\n{correct}");
         assert_eq!(e, correct);
     }
     #[test]

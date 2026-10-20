@@ -102,7 +102,7 @@ exp -> R<Exp> :
 
 bindings -> R<Vec<(String, Typ, Exp)>> :
     bindings 'and' binding { let mut v = $1?; v.push($3?); Ok(v) }
-  |                binding { let mut v = Vec::new(); v.push($1?); Ok(v) }
+  |                binding { Ok(vec![$1?]) }
 ;
 
 binding -> R<(String, Typ, Exp)> :

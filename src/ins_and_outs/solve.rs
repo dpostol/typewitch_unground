@@ -1,5 +1,5 @@
-use super::syntax::Typ;
 use super::Closure;
+use super::syntax::Typ;
 use im_rc::HashMap;
 
 pub fn solve_closure(cs: Closure) -> HashMap<Typ, Typ> {
@@ -45,8 +45,7 @@ fn solve_recursively(t: Typ, i: &HashMap<Typ, Typ>) -> Typ {
             Some(t) => t.clone(),
             None => {
                 eprintln!(
-                    "while resolving a higher kinded type, the lower-kinded type {} was not solved",
-                    t
+                    "while resolving a higher kinded type, the lower-kinded type {t} was not solved"
                 );
                 // this is probly definitely wrong, and this oddness in *never* specified
                 Typ::Metavar(4444)

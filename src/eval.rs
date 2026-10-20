@@ -13,6 +13,7 @@ enum Val<'a> {
 }
 
 pub enum Answer {
+    #[allow(dead_code)] // payload not yet inspected by callers
     Lit(Lit),
     Closure,
 }
@@ -38,10 +39,10 @@ impl<'a> Val<'a> {
         }
     }
 
-    fn to_answer(self) -> Answer {
+    fn into_answer(self) -> Answer {
         match self {
             Val::Lit(l) => Answer::Lit(l),
-            Val::Tagged(_, v) => v.to_answer(),
+            Val::Tagged(_, v) => v.into_answer(),
             Val::Closure(..) => Answer::Closure,
         }
     }
@@ -60,7 +61,7 @@ impl Eval {
                 if &g2 == g {
                     Ok(Val::Tagged(g2, Box::new(v)))
                 } else {
-                    Err(Error::Coercion(format!("tag({:?}) on {:?}", g, v)))
+                    Err(Error::Coercion(format!("tag({g:?}) on {v:?}")))
                 }
             }
             Coerce::Untag(g, lab) => match v {
@@ -68,18 +69,18 @@ impl Eval {
                     if g == &g2 {
                         Ok(*v)
                     } else {
-                        Err(Error::Coercion(format!("untag({:?} {:?})", g, lab)))
+                        Err(Error::Coercion(format!("untag({g:?} {lab:?})")))
                     }
                 }
-                _ => Err(Error::Coercion(format!("untagged a not-tagged value"))),
+                _ => Err(Error::Coercion("untagged a not-tagged value".to_string())),
             },
             Coerce::Wrap(dom, rng) => {
                 match v {
                     Val::Closure(env, x, body, dom1, rng1) => {
                         // TODO(arjun): Ordering matters
-                        Ok(Val::Closure(env, x, body, dom.seq(&dom1), rng1.seq(&rng)))
+                        Ok(Val::Closure(env, x, body, dom.seq(&dom1), rng1.seq(rng)))
                     }
-                    _ => Err(Error::Coercion(format!("wrap on a non-function"))),
+                    _ => Err(Error::Coercion("wrap on a non-function".to_string())),
                 }
             }
         }
@@ -104,11 +105,11 @@ impl Eval {
                         self.eval_k(&rng, r)
                     }
                     // Coercion insertion should ensure this does not occur
-                    _ => panic!("expected closure value in function position (got {:?})", v1),
+                    _ => panic!("expected closure value in function position (got {v1:?})"),
                 }
             }
             Exp::Coerce(t1, t2, e) => {
-                let k = super::insert_coercions::coerce(&t1, &t2);
+                let k = super::insert_coercions::coerce(t1, t2);
                 let v = self.eval(env, e)?;
                 self.eval_k(&k, v)
             }
@@ -136,5 +137,5 @@ impl Eval {
 pub fn eval(exp: Exp) -> Result<Answer, Error> {
     let eval = Eval {};
     let v = eval.eval(Env::new(), &exp)?;
-    return Ok(v.to_answer());
+    Ok(v.into_answer())
 }

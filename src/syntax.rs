@@ -74,7 +74,7 @@ impl Typ {
 
     /// Generates a right-associated, unit-terminated tuple type
     pub fn tuples(typs: Vec<Typ>) -> Self {
-        if typs.len() == 0 {
+        if typs.is_empty() {
             Typ::Unit
         } else if typs.len() == 1 {
             Typ::Pair(
@@ -251,9 +251,9 @@ pub enum BinOp {
 
 impl UnOp {
     pub fn typ(&self) -> (Typ, Typ) {
+        use Typ::*;
         #[allow(unused_imports)]
         use std::boxed::Box;
-        use Typ::*;
         match self {
             UnOp::Not => (Bool, Bool),
             UnOp::BinaryNot => (Int, Int),
@@ -279,9 +279,9 @@ impl UnOp {
 }
 impl BinOp {
     pub fn typ(&self) -> (Typ, Typ, Typ) {
+        use Typ::*;
         #[allow(unused_imports)]
         use std::boxed::Box;
-        use Typ::*;
         match self {
             BinOp::IntEq => (Int, Int, Bool),
             BinOp::IntAdd | BinOp::IntMul => (Int, Int, Int),
@@ -319,8 +319,8 @@ impl Exp {
             let mut res = exps.next().unwrap();
             let mut ctr = num_exps - 1;
             for exp in exps {
-                res = Exp::Let(format!("__begin{}", ctr), Box::new(exp), Box::new(res));
-                ctr = ctr - 1;
+                res = Exp::Let(format!("__begin{ctr}"), Box::new(exp), Box::new(res));
+                ctr -= 1;
             }
             res
         }
@@ -361,7 +361,7 @@ impl Exp {
     ///
     /// Returns unit or the sole type itself when given 0 or 1 `typs`
     pub fn pairs(exps: Vec<Exp>) -> Self {
-        if exps.len() == 0 {
+        if exps.is_empty() {
             Exp::Lit(Lit::Unit)
         } else if exps.len() == 1 {
             Exp::Pair(
@@ -383,7 +383,7 @@ impl Exp {
         let mut proj = self;
         while n > 0 {
             proj = Exp::Snd(Box::new(proj));
-            n = n - 1;
+            n -= 1;
         }
         Exp::Fst(Box::new(proj))
     }
@@ -414,7 +414,7 @@ impl Exp {
     }
 
     fn one_of_ints(val: &Exp, ints: Vec<i32>) -> Self {
-        assert!(ints.len() >= 1);
+        assert!(!ints.is_empty());
 
         let mut ints = ints.into_iter();
         let mut e = Exp::BinaryOp(
@@ -463,8 +463,8 @@ impl Exp {
         acc_init: Exp,
         body: Exp,
     ) -> Exp {
-        let loop_fun = format!("__loop_{}_{}", var, acc); // TODO(mmg): ensure freshness
-        let loop_hi = format!("__loop_{}_{}_hi", var, acc);
+        let loop_fun = format!("__loop_{var}_{acc}"); // TODO(mmg): ensure freshness
+        let loop_hi = format!("__loop_{var}_{acc}_hi");
         let index = Box::new(Exp::Var(var.clone()));
 
         let loop_body = Exp::If(
@@ -580,7 +580,7 @@ impl Exp {
                 if t2.is_metavar() || t1 == t2 {
                     Ok(())
                 } else {
-                    Err(format!("empty mismatch {} vs {}", t1, t2))
+                    Err(format!("empty mismatch {t1} vs {t2}"))
                 }
             }
             (Exp::Fun(id1, t1, e1), Exp::Fun(id2, t2, e2))
@@ -589,22 +589,18 @@ impl Exp {
                 if t2.is_metavar() || t1 == t2 {
                     Ok(())
                 } else {
-                    Err(format!("fun mismatch {}: {} vs {}: {}", id1, t1, id2, t2))
+                    Err(format!("fun mismatch {id1}: {t1} vs {id2}: {t2}"))
                 }
             }
             (Exp::LetRec(bindings1, e1), Exp::LetRec(bindings2, e2)) => {
-                bindings1.iter().zip(bindings2.iter()).fold(
-                    Ok(()),
-                    |acc, ((id1i, t1i, e1i), (id2i, t2i, e2i))| {
-                        acc?;
+                bindings1.iter().zip(bindings2.iter()).try_fold(
+                    (),
+                    |(), ((id1i, t1i, e1i), (id2i, t2i, e2i))| {
                         e1i.matches_roughly(e2i)?;
                         if t2i.is_metavar() || t1i == t2i {
                             Ok(())
                         } else {
-                            Err(format!(
-                                "letrec mismatch {}: {} vs {}: {}",
-                                id1i, t1i, id2i, t2i
-                            ))
+                            Err(format!("letrec mismatch {id1i}: {t1i} vs {id2i}: {t2i}"))
                         }
                     },
                 )?;
@@ -643,8 +639,7 @@ impl Exp {
                 .and_then(|_| e12.matches_roughly(e22))
                 .and_then(|_| e13.matches_roughly(e23)),
             _ => Err(format!(
-                "strange. PROGRAM mismatch:\nINFERRED:\n{}\nGIVEN:\n{}",
-                self, other
+                "strange. PROGRAM mismatch:\nINFERRED:\n{self}\nGIVEN:\n{other}"
             )),
         }
     }
@@ -658,14 +653,14 @@ impl Exp {
             Exp::Lit(_) | Exp::Var(_) | Exp::Empty(_) => (),
             Exp::Fun(id, t, e) | Exp::Fix(id, t, e) => {
                 if !id.starts_with("__") {
-                    println!("{}: {}", id, t);
+                    println!("{id}: {t}");
                 }
                 e.print_id_types();
             }
             Exp::LetRec(bindings, e) => {
                 for (idi, ti, ei) in bindings {
                     if !idi.starts_with("__") {
-                        println!("{}: {}", idi, ti);
+                        println!("{idi}: {ti}");
                     }
                     ei.print_id_types();
                 }

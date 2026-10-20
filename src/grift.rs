@@ -2,7 +2,13 @@ use crate::syntax::*;
 use im_rc::HashMap;
 
 lrlex::lrlex_mod!("grift.l"); // effectively mod `grift_l`
-lrpar::lrpar_mod!("grift.y"); // effectively mod `grift_y`
+// The generated parser trips clippy lints we can't fix at the source.
+#[allow(clippy::vec_init_then_push)]
+mod grift_y_gen {
+    lrpar::lrpar_mod!("grift.y"); // effectively mod `grift_y`
+    pub use grift_y::*;
+}
+use grift_y_gen as grift_y;
 
 pub fn toplevel_exp(tls: Vec<Toplevel>) -> Exp {
     let mut bindings = Vec::new();
@@ -68,21 +74,23 @@ pub fn env() -> Env {
 #[cfg(test)]
 mod test {
     use super::parse;
+    use crate::Options;
     use crate::cgen::typeinf_options;
     use crate::syntax::*;
     use crate::tests_631::contains_coercions;
     use crate::type_check::tcheck;
-    use crate::Options;
 
     fn compile_verbose(orig: Exp) -> (Typ, Exp) {
         let env = super::env();
-        println!("\nOriginal program:\n{}", &orig);
-        let mut options = Options::default();
-        options.debug = true;
+        println!("\nOriginal program:\n{orig}");
+        let options = Options {
+            debug: true,
+            ..Default::default()
+        };
         let e = typeinf_options(orig, &env, options).unwrap();
-        println!("\nAfter type inference:\n{}", e);
+        println!("\nAfter type inference:\n{e}");
         let t = tcheck(&env, &e).expect("failed to typecheck");
-        println!("\nProgram type:\n{}", t);
+        println!("\nProgram type:\n{t}");
         (t, e)
     }
     pub fn exp_succeeds(orig: Exp) -> Typ {
@@ -247,7 +255,9 @@ mod test {
     #[test]
     fn scheme_varnames() {
         assert_eq!(
-            exp_succeeds(parse("(define days-per-year : Float #i365.24) (define *saturn* #i-4.03523417114321381e-1) *saturn*")),
+            exp_succeeds(parse(
+                "(define days-per-year : Float #i365.24) (define *saturn* #i-4.03523417114321381e-1) *saturn*"
+            )),
             Typ::Float
         );
     }

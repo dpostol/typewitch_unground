@@ -76,8 +76,10 @@ impl Typ {
     }
     /// self ≼ t
     pub fn dyn_consistent(&self, t: &Typ) -> bool {
-        matches!((self, t),
-            (Typ::Null, _) | (Typ::Any, _) | (_, Typ::Any) | (Typ::Arr(..), Typ::Arr(..)))
+        matches!(
+            (self, t),
+            (Typ::Null, _) | (Typ::Any, _) | (_, Typ::Any) | (Typ::Arr(..), Typ::Arr(..))
+        )
     }
     /// least upper bound of kinds. self and k must be kinds (which means not
     /// metavars, i think(?))

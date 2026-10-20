@@ -110,7 +110,8 @@ fn alphabet(i: u32) -> String {
     if i <= num_latin_chars {
         std::char::from_u32('a' as u32 + i).unwrap().to_string()
     } else {
-        format!("⦉{}⦊", i - num_latin_chars)
+        let var_num = i - num_latin_chars;
+        format!("⦉{var_num}⦊")
     }
 }
 
@@ -247,7 +248,7 @@ impl Pretty for Exp {
                 e.pretty(pp),
             ]),
             Exp::App(e1, e2) => {
-                let e2 = skip_coercion(&**e2);
+                let e2 = skip_coercion(e2);
                 pp.concat(vec![
                     parens_if(pp, &**e1, e1.is_fun_exp()),
                     pp.softline(),
@@ -379,7 +380,7 @@ impl Pretty for Exp {
             ]),
             Exp::Coerce(_, _, e) => e.pretty(pp),
             Exp::PrimCoerce(k, e) => {
-                pp.concat(vec![pp.text(format!("[{:?}]", k)), e.pretty(pp).nest(2)])
+                pp.concat(vec![pp.text(format!("[{k:?}]")), e.pretty(pp).nest(2)])
             }
         }
     }

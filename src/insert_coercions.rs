@@ -12,12 +12,12 @@ use im_rc::HashMap;
 static mut COUNTER: u32 = 0;
 
 fn gensym() -> String {
-   let next: u32;
-   unsafe {
-      next = COUNTER;
-      COUNTER += 1;
-   }
-  next.to_string()
+    let next: u32;
+    unsafe {
+        next = COUNTER;
+        COUNTER += 1;
+    }
+    next.to_string()
 }
 
 type Env = HashMap<Id, Typ>;
@@ -28,7 +28,7 @@ fn lit_typ(lit: &Lit) -> Typ {
     match lit {
         Lit::Int(_) => Typ::Int,
         Lit::Bool(_) => Typ::Bool,
-        _ => panic!("unsupported literal {:?}", lit),
+        _ => panic!("unsupported literal {lit:?}"),
     }
 }
 
@@ -53,11 +53,13 @@ pub fn coerce(src: &Typ, dst: &Typ) -> Coerce {
             Coerce::Wrap(Box::new(coerce(dom2, dom1)), Box::new(coerce(rng1, rng2)))
         }
         (Typ::Any, Typ::Int) => Coerce::Untag(GroundTyp::Int, gensym()),
-        (Typ::Any, Typ::Bool) => Coerce::Untag(GroundTyp::Bool, gensym() ),
-        (Typ::Any, Typ::Arr(dom, rng)) => Coerce::Untag(GroundTyp::Fun, gensym() ).seq(&Coerce::Wrap(
-            Box::new(coerce(dom, &Typ::Any)),
-            Box::new(coerce(&Typ::Any, rng)),
-        )),
+        (Typ::Any, Typ::Bool) => Coerce::Untag(GroundTyp::Bool, gensym()),
+        (Typ::Any, Typ::Arr(dom, rng)) => {
+            Coerce::Untag(GroundTyp::Fun, gensym()).seq(&Coerce::Wrap(
+                Box::new(coerce(dom, &Typ::Any)),
+                Box::new(coerce(&Typ::Any, rng)),
+            ))
+        }
         _ => {
             if src == dst {
                 Coerce::Id
@@ -71,10 +73,13 @@ pub fn coerce(src: &Typ, dst: &Typ) -> Coerce {
 fn ins(mut env: Env, exp: &mut Exp) -> R {
     match exp {
         Exp::Var(x) => {
-            let t = env.get(x).ok_or("unbound identifier".to_string())?.clone();
+            let t = env
+                .get(x)
+                .cloned()
+                .ok_or_else(|| "unbound identifier".to_string())?;
             Ok(t)
         }
-        Exp::Lit(l) => Ok(lit_typ(&l)),
+        Exp::Lit(l) => Ok(lit_typ(l)),
         Exp::Fun(x, t1, e) => {
             env.insert(x.clone(), t1.clone());
             let t2 = ins(env, e)?;
@@ -121,7 +126,7 @@ fn ins(mut env: Env, exp: &mut Exp) -> R {
         }
         Exp::Ann(e1, t1) => {
             let t2 = ins(env.clone(), e1)?;
-            let k = coerce(&t2, &t1);
+            let k = coerce(&t2, t1);
             let t_result = t1.take();
             *exp = Exp::PrimCoerce(k, Box::new(e1.take()));
             Ok(t_result)
@@ -137,5 +142,5 @@ fn ins(mut env: Env, exp: &mut Exp) -> R {
 /// expected failures, e.g., if the program has a free variable.
 pub fn insert_coercions(exp: &mut Exp) -> Result<(), String> {
     ins(Env::new(), exp)?;
-    return Ok(());
+    Ok(())
 }
