@@ -51,9 +51,8 @@ pub fn decorate_typ(t: &mut Typ, solution: &HashMap<Typ, Typ>) {
             }
             None => {
                 eprintln!(
-                    "WARNING: no solution for {}. this probably means
-                there are no constraints on the type. Writing int",
-                    t
+                    "WARNING: no solution for {t}. this probably means
+                there are no constraints on the type. Writing int"
                 );
                 *t = Typ::Metavar(4444);
             }

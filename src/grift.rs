@@ -82,15 +82,15 @@ mod test {
 
     fn compile_verbose(orig: Exp) -> (Typ, Exp) {
         let env = super::env();
-        println!("\nOriginal program:\n{}", orig);
+        println!("\nOriginal program:\n{orig}");
         let options = Options {
             debug: true,
             ..Default::default()
         };
         let e = typeinf_options(orig, &env, options).unwrap();
-        println!("\nAfter type inference:\n{}", e);
+        println!("\nAfter type inference:\n{e}");
         let t = tcheck(&env, &e).expect("failed to typecheck");
-        println!("\nProgram type:\n{}", t);
+        println!("\nProgram type:\n{t}");
         (t, e)
     }
     pub fn exp_succeeds(orig: Exp) -> Typ {

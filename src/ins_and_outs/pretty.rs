@@ -82,7 +82,8 @@ fn greek(i: u32) -> String {
         // 0x03b1 is α
         std::char::from_u32(0x03b1 + i).unwrap().to_string()
     } else {
-        format!("⦉{}⦊", i - num_greek_chars)
+        let n = i - num_greek_chars;
+        format!("⦉{n}⦊")
     }
 }
 

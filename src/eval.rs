@@ -61,7 +61,7 @@ impl Eval {
                 if &g2 == g {
                     Ok(Val::Tagged(g2, Box::new(v)))
                 } else {
-                    Err(Error::Coercion(format!("tag({:?}) on {:?}", g, v)))
+                    Err(Error::Coercion(format!("tag({g:?}) on {v:?}")))
                 }
             }
             Coerce::Untag(g, lab) => match v {
@@ -69,7 +69,7 @@ impl Eval {
                     if g == &g2 {
                         Ok(*v)
                     } else {
-                        Err(Error::Coercion(format!("untag({:?} {:?})", g, lab)))
+                        Err(Error::Coercion(format!("untag({g:?} {lab:?})")))
                     }
                 }
                 _ => Err(Error::Coercion("untagged a not-tagged value".to_string())),

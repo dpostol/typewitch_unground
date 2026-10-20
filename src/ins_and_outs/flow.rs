@@ -38,11 +38,11 @@ fn p(c: &mut Closure, description: &'static str, reasons: Vec<(&Typ, &Typ)>, t1:
         if super::DEBUG {
             let mut reasoning = String::from(description);
             reasoning.push_str(": ");
-            for reason in reasons {
-                reasoning.push_str(&format!("{} |> {}, ", reason.0, reason.1));
+            for (lhs, rhs) in reasons {
+                reasoning.push_str(&format!("{lhs} |> {rhs}, "));
             }
-            reasoning.push_str(&format!("==> {} |> {}", t1, t2));
-            eprintln!("{}", reasoning);
+            reasoning.push_str(&format!("==> {t1} |> {t2}"));
+            eprintln!("{reasoning}");
         }
         let as_tup = (t1, t2);
         if !c.contains(&as_tup) {

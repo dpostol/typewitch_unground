@@ -244,7 +244,7 @@ fn migrate_main(config: Opts) -> Result<()> {
 
     if options.debug {
         eprintln!("Parsed program:");
-        eprintln!("{}", parsed);
+        eprintln!("{parsed}");
     }
     let inferred = if config.ins_and_outs {
         parsed.fresh_types();
@@ -257,14 +257,14 @@ fn migrate_main(config: Opts) -> Result<()> {
         let typ = type_check::tcheck(&env, &inferred).map_err(|e| Error::other(e.to_string()))?;
         if options.debug {
             eprintln!("Inferred type:");
-            eprintln!("{}", typ);
+            eprintln!("{typ}");
         }
     }
 
     match config.compare {
         None => {
             match language {
-                Parser::Empty => println!("{}", inferred),
+                Parser::Empty => println!("{inferred}"),
                 Parser::Grift => inferred.print_id_types(),
             }
             Ok(())
@@ -278,7 +278,7 @@ fn migrate_main(config: Opts) -> Result<()> {
                     Ok(())
                 }
                 Err(e) => {
-                    println!("{}", e);
+                    println!("{e}");
                     std::process::exit(1);
                 }
             }
@@ -378,15 +378,15 @@ mod tests_631 {
     }
     fn compile_verbose(mut orig: Exp) -> (Typ, Exp) {
         orig.fresh_types();
-        println!("\nOriginal program:\n{}", orig);
+        println!("\nOriginal program:\n{orig}");
         let options = Options {
             debug: true,
             ..Default::default()
         };
         let e = typeinf_options(orig, &Default::default(), options).unwrap();
-        println!("\nAfter type inference:\n{}", e);
+        println!("\nAfter type inference:\n{e}");
         let t = type_check(&e).expect("failed to typecheck");
-        println!("\nProgram type:\n{}", t);
+        println!("\nProgram type:\n{t}");
         (t, e)
     }
     pub fn exp_succeeds(orig: Exp) -> Typ {
@@ -564,16 +564,16 @@ mod tests_migeed_and_parsberg {
     fn assert_maximal(program: &str, annotated: &str) {
         let mut orig = parse(program).unwrap();
         orig.fresh_types();
-        println!("\nOriginal program:\n{}", orig);
+        println!("\nOriginal program:\n{orig}");
         let e = typeinf(orig).expect("type inference failed on the original program");
-        println!("\nAfter type inference:\n{}", e);
+        println!("\nAfter type inference:\n{e}");
         let correct = typeinf(parse(annotated).unwrap())
             .expect("type inference failed on the expected program");
         println!(
             "\nProgram type:\n{}",
             type_check(&e).expect("failed to typecheck")
         );
-        println!("\nCorrect:\n{}", correct);
+        println!("\nCorrect:\n{correct}");
         assert_eq!(e, correct);
     }
     #[test]

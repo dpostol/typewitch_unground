@@ -38,7 +38,7 @@ pub fn parser_warning(msg: impl AsRef<str>) {
 pub fn show_warnings() {
     PARSER_WARNINGS.with(|ws| {
         for w in ws.replace(HashSet::new()).into_iter() {
-            eprintln!("Warning: {}", w);
+            eprintln!("Warning: {w}");
         }
     });
 }

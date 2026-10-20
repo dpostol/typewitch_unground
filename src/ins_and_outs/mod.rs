@@ -40,7 +40,7 @@ pub fn typeinf(parsed: syntax::Exp) -> (syntax::Exp, syntax::Typ) {
     decorate::decorate(&mut coerced, &solution);
     decorate::decorate_typ(&mut typ, &solution);
     if DEBUG {
-        println!("annotated:\n{}", coerced);
+        println!("annotated:\n{coerced}");
     }
     (coerced, typ)
 }
@@ -71,18 +71,18 @@ mod tests {
     }
     pub fn succeeds(program: &str) {
         let orig = parse(program);
-        println!("\nOriginal program:\n{}", orig);
-        let e = typeinf(orig);
-        println!("\nAfter type inference:\n{}", e.1);
-        let coercions = contains_coercions(e.0);
+        println!("\nOriginal program:\n{orig}");
+        let (e, typ) = typeinf(orig);
+        println!("\nAfter type inference:\n{typ}");
+        let coercions = contains_coercions(e);
         assert!(!coercions);
     }
     pub fn coerces(program: &str) {
         let orig = parse(program);
-        println!("\nOriginal program:\n{}", orig);
-        let e = typeinf(orig);
-        println!("\nAfter type inference:\n{}", e.1);
-        let coercions = contains_coercions(e.0);
+        println!("\nOriginal program:\n{orig}");
+        let (e, typ) = typeinf(orig);
+        println!("\nAfter type inference:\n{typ}");
+        let coercions = contains_coercions(e);
         assert!(coercions);
     }
     #[test]

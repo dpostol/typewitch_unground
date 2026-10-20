@@ -655,7 +655,7 @@ pub fn typeinf_options(mut exp: Exp, env: &Env, options: Options) -> Result<Exp,
         options,
     };
     let (t, phi) = s.cgen(env, &mut exp);
-    eprintln!("{:#?}", phi);
+    eprintln!("{phi:#?}");
     s.solver.assert(&phi);
     if options.debug {
         eprintln!("Simplified constraints:");
@@ -680,7 +680,7 @@ pub fn typeinf_options(mut exp: Exp, env: &Env, options: Options) -> Result<Exp,
             let mut exp_precise = exp.clone();
             let result = s.solve_model(model);
             annotate(&result, &mut exp_precise);
-            println!("precise annotation: {}", exp_precise);
+            println!("precise annotation: {exp_precise}");
         }
     }
     if options.debug {

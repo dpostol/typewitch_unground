@@ -339,18 +339,7 @@ pub fn summarize_latex(src_file: impl AsRef<str>) -> Result<(), std::io::Error> 
         let stars = num_stars_left.get(title).unwrap();
         let stars_denom = num_original_stars.get(title).unwrap();
         println!(
-            "{} & {} / {} & {} / {} & {} / {} &  {} / {} & {} / {} \\\\ ",
-            title,
-            rejected,
-            rejected_denom,
-            new_runtime_err,
-            new_runtime_err_denom,
-            unusable,
-            unusable_denom,
-            restricted,
-            restricted_denom,
-            stars,
-            stars_denom
+            "{title} & {rejected} / {rejected_denom} & {new_runtime_err} / {new_runtime_err_denom} & {unusable} / {unusable_denom} &  {restricted} / {restricted_denom} & {stars} / {stars_denom} \\\\ "
         );
     }
 
@@ -398,9 +387,9 @@ pub fn details_latex(src_file: impl AsRef<str>) -> Result<(), std::io::Error> {
                 Expect::Unusable => "Unusable",
                 Expect::Restricted { .. } => "Restricted",
             };
-            println!("\\paragraph{{{}}}: {}", t.title, outcome_str);
+            println!("\\paragraph{{{}}}: {outcome_str}", t.title);
             println!("\\begin{{lstlisting}}");
-            println!("{}", migration);
+            println!("{migration}");
             println!("\\end{{lstlisting}}\n");
         }
     }
