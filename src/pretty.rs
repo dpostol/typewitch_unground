@@ -62,7 +62,7 @@ impl Pretty for Typ {
     {
         match self {
             Typ::Unit => pp.text("unit"),
-            Typ::Int => pp.text("\\int"),
+            Typ::Int => pp.text("int"),
             Typ::Float => pp.text("float"),
             Typ::Bool => pp.text("bool"),
             Typ::Str => pp.text("str"),
@@ -70,7 +70,7 @@ impl Pretty for Typ {
             Typ::Arr(t1, t2) => pp.concat(vec![
                 parens_if(pp, &**t1, t1.is_arr()),
                 pp.space(),
-                pp.text("\\rightarrow"),
+                pp.text("->"),
                 pp.space(),
                 t2.pretty(pp),
             ]),
@@ -97,7 +97,7 @@ impl Pretty for Typ {
                 pp.space(),
                 parens_if(pp, &**t, t.is_atom()),
             ]),
-            Typ::Any => pp.text("\\star"),
+            Typ::Any => pp.text("any"),
             Typ::Metavar(i) => pp.text(alphabet(*i)),
         }
     }
@@ -113,6 +113,46 @@ fn alphabet(i: u32) -> String {
         let var_num = i - num_latin_chars;
         format!("⦉{var_num}⦊")
     }
+}
+
+fn printtype (t : Typ) -> String {
+match t {
+      Typ::Int => "\\int".to_string(),
+      Typ::Any => "\\star".to_string(),
+      Typ::Arr(t1, t2) => format!("{} \\rightarrow {}", printtype(*t1), printtype(*t2)),
+      _ => "".to_string()
+}
+
+}
+
+fn printcoerce(k : Coerce) -> String {
+match k {
+	Coerce::Id => "\\id".to_string(),
+	Coerce::Tag(GroundTyp::Int) => "\\int !".to_string(),
+	Coerce::Tag(GroundTyp::Bool) => "bool !".to_string(),
+	Coerce::Tag(GroundTyp::Fun) => "\\mathsf{fun} !".to_string(),
+	Coerce::Untag(GroundTyp::Int, l) => "\\int \\que".to_string(),
+	Coerce::Untag(GroundTyp::Bool, l) => "bool \\que".to_string(),
+	Coerce::Untag(GroundTyp::Fun, l) => "\\mathsf{fun} \\que".to_string(),
+	Coerce::Seq(k1, k2) => format!("{} ; {}", printcoerce(*k1), printcoerce(*k2)),
+	Coerce::Wrap(k1, k2) => format!("({} \\mapsto {})", printcoerce(*k1), printcoerce(*k2)),
+	Coerce::Doomed => "doomed".to_string(),
+}
+}
+
+pub fn printexp(e : Exp) -> String {
+ match e {
+ Exp::Lit(l) => format!("{:?}", l),
+ Exp::Var(x) => x,
+ Exp::Ann(e, typ) => format!("{} \\mathord{{:}} {}", printexp(*e), printtype(typ)),
+ Exp::PrimCoerce(k, e) => match k {
+ 		    Coerce::Id => printexp(*e),
+		    _ => format!("[{}] {}", printcoerce(k), printexp(*e)),
+},
+ Exp::Fun(id, t, e) => format!("\\lambda {} \\mathord{{:}} {} . ~ {} ", id, printtype(t), printexp(*e)),
+ Exp::App(e1, e2) => format!("{} {}", printexp(*e1), printexp(*e2)),
+ _ => "".to_string()
+}
 }
 
 pub fn simplexp(e : Exp) -> Exp {
@@ -202,7 +242,7 @@ impl Pretty for Toplevel {
         }
     }
 }
-
+/*
 impl Pretty for Coerce {
 fn pretty<'b, D, A>(&'b self, pp: &'b D) -> pretty::DocBuilder<'b, D, A>
     where
@@ -214,10 +254,10 @@ fn pretty<'b, D, A>(&'b self, pp: &'b D) -> pretty::DocBuilder<'b, D, A>
 	Coerce::Id => pp.text("\\id"),
 	Coerce::Tag(GroundTyp::Int) => pp.text("\\int !"),
 	Coerce::Tag(GroundTyp::Bool) => pp.text("bool !"),
-	Coerce::Tag(GroundTyp::Fun) => pp.text("\\star \\rightarrow \\star !"),
+	Coerce::Tag(GroundTyp::Fun) => pp.text("\\mathsf{fun} !"),
 	Coerce::Untag(GroundTyp::Int, l) => pp.text("\\int \\que"),
 	Coerce::Untag(GroundTyp::Bool, l) => pp.text("bool \\que"),
-	Coerce::Untag(GroundTyp::Fun, l) => pp.text("\\star \\rightarrow \\star \\que"),
+	Coerce::Untag(GroundTyp::Fun, l) => pp.text("\\mathsf{fun} \\que"),
 	Coerce::Seq(k1, k2) => pp.concat(vec![ k1.pretty(pp), pp.text(";"), k2.pretty(pp)]),
 	Coerce::Wrap(k1, k2) => pp.concat(vec![pp.text("("), k1.pretty(pp), pp.text("\\mapsto"), k2.pretty(pp), pp.text(")")]),
 	Coerce::Doomed => pp.text("doomed"),
@@ -226,7 +266,7 @@ fn pretty<'b, D, A>(&'b self, pp: &'b D) -> pretty::DocBuilder<'b, D, A>
     }
 
 }
-
+*/
 
 
 impl Pretty for Exp {
@@ -279,7 +319,7 @@ impl Pretty for Exp {
                 vec![
                     e.pretty(pp),
                     pp.space(),
-                    pp.text("\\mathord{:}"),
+                    pp.text(":"),
                     pp.space(),
                     typ.pretty(pp),
                 ],
@@ -287,22 +327,22 @@ impl Pretty for Exp {
             ),
             Exp::Fun(x, Typ::Metavar(_), e) if !PRINT_METAVARS => pp
                 .concat(vec![
-                    pp.text("\\lambda"),
+                    pp.text("fun"),
                     pp.space(),
                     pp.text(x),
                     pp.space(),
-                    pp.text(". ~"),
+                    pp.text("."),
                     pp.softline(),
                     e.pretty(pp).nest(2),
                 ])
                 .group(),
             Exp::Fun(x, t, e) => pp.concat(vec![
-                pp.text("\\lambda"),
+                pp.text("fun"),
                 pp.space(),
                 pp.text(x),
-                pp.text("\\mathord{:}"),
+                pp.text(":"),
                 t.pretty(pp),
-                pp.text(". ~"),
+                pp.text("."),
                 pp.softline(),
                 e.pretty(pp).nest(2),
             ]),
@@ -449,10 +489,8 @@ impl Pretty for Exp {
             ]),
             Exp::Coerce(_, _, e) => e.pretty(pp),
             Exp::PrimCoerce(k, e) => {
-	    match k {
-	    	Coerce::Id => e.pretty(pp).nest(2),
-		_ =>  pp.concat(vec![pp.text("["), k.pretty(pp) , pp.text("]"), e.pretty(pp).nest(2)]),
-            }    
+	    pp.concat(vec![pp.text(format!("[{k:?}]")), e.pretty(pp).nest(2)])
+                
             }
         }
     }
