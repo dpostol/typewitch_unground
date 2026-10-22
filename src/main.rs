@@ -177,10 +177,11 @@ fn eval_main(opts: EvalOpts) -> Result<()> {
     let src_txt = std::fs::read_to_string(opts.input)?;
     let mut src_ast = parser::parse(&src_txt).expect("parse error");
     insert_coercions::insert_coercions(&mut src_ast).unwrap();
+    let printexp = pretty::simplexp(src_ast.clone());
 
-    if opts.show_inserted_coercions {
-        println!("With coercions:\n{src_ast}");
-    }
+  
+        println!("With coercions:\n{printexp}");
+    
 
     match eval::eval(src_ast) {
         Ok(_) => println!("OK"),
