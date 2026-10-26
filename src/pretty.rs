@@ -118,7 +118,7 @@ fn alphabet(i: u32) -> String {
 fn printtype (t : Typ) -> String {
 match t {
       Typ::Int => "\\int".to_string(),
-      Typ::Any => "\\mathord{{\\star}}".to_string(),
+      Typ::Any => "\\mathord{\\star}".to_string(),
       Typ::Arr(t1, t2) => format!("({} \\rightarrow {})", printtype(*t1), printtype(*t2)),
       _ => "".to_string()
 }
