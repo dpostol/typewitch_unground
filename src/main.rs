@@ -183,8 +183,9 @@ let printe = pretty::simplexp(src_ast.clone());
     let printe2 = pretty::printexp(printe);
 
   
-       println!("With coercions:\n {}", &printe2);
+       println!("With coercions:\n{}", &printe2);
     }
+   // println!("With coercions:\n{:?}", &src_ast);
 
     match eval::eval(src_ast) {
         Ok(_) => println!("OK"),

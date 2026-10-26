@@ -118,8 +118,8 @@ fn alphabet(i: u32) -> String {
 fn printtype (t : Typ) -> String {
 match t {
       Typ::Int => "\\int".to_string(),
-      Typ::Any => "\\star".to_string(),
-      Typ::Arr(t1, t2) => format!("{} \\rightarrow {}", printtype(*t1), printtype(*t2)),
+      Typ::Any => "\\mathord{{\\star}}".to_string(),
+      Typ::Arr(t1, t2) => format!("({} \\rightarrow {})", printtype(*t1), printtype(*t2)),
       _ => "".to_string()
 }
 
@@ -139,8 +139,74 @@ match k {
 	Coerce::Doomed => "doomed".to_string(),
 }
 }
+/* 
+fn printatom (e : Exp) -> String {
+    match e {
+        Exp::Lit(l) => format!("{:?}", l),
+        Exp::Var(x) => x,
+        Exp::Empty(t) => todo!(),
+        _ => format!("( {} )", printexp(e)),
+
+    }
+}
+
+fn printfun (e : Exp) -> String {
+    match e {
+        Exp::App(e1, e2) => todo!(),
+        Exp::Head(e) => todo!(),
+        Exp::Tail(e) => todo!(),
+        Exp::IsEmpty(e) => todo!(),
+        Exp::IsBool(e) => todo!(),
+        Exp::IsInt(e) => todo!(),
+        Exp::IsString(e) => todo!(),
+        Exp::IsList(e) => todo!(),
+        Exp::IsFun(e) => todo!(),
+        Exp::Coerce(t,Typ::Any , e) => todo!(),
+        Exp::Coerce(Typ::Any, t, e) => todo!(),
+        _ => printatom(e),
+
+    }
+}
+
+fn printmul(e : Exp) -> String {
+    match e {
+        Exp::BinaryOp(BinOp::IntMul,e1 ,e2 ) => todo!(),
+        Exp::UnaryOp(UnOp::Not, e) => todo!(),
+        _ => printfun(e),
+    }
+}
+
+fn printadd(e : Exp) -> String {
+    match e {
+        Exp::BinaryOp(BinOp::IntAdd, e1, e2) => todo!(),
+        Exp::AddOverload(eq,e2 ) => todo!(),
+        _ => printmul(e),
+
+    }
+}
+
+fn printpair(e : Exp) -> String {
+    match e {
+        Exp::Pair(e1, e2) => todo!(),
+        Exp::BinaryOp(BinOp::IntEq, e1, e2) => todo!(),
+        _ => printadd(e),
+    }
+}
 
 pub fn printexp(e : Exp) -> String {
+ match e {
+    Exp::Fix(id,typ ,e ) => todo!(),
+    Exp::Fun(id, t, e) => todo!(),
+    Exp::If(e1, e2, e3) => todo!(),
+    Exp::Let(id,e1 ,e2 ) => todo!(),
+    Exp::LetRec(v, e) => todo!(),
+    Exp::Cons(e1,e2 ) => todo!(),
+    Exp::Ann(e,t ) => todo!(),
+    _ => printpair(e),
+ }
+}
+*/
+pub fn printexp(e : Exp) -> String {   
  match e {
  Exp::Lit(l) => format!("{:?}", l),
  Exp::Var(x) => x,
@@ -150,8 +216,8 @@ pub fn printexp(e : Exp) -> String {
 		    _ => format!("[{}] {}", printcoerce(k), printexp(*e)),
 },
  Exp::Fun(id, t, e) => format!("\\lambda {} \\mathord{{:}} {} . ~ {} ", id, printtype(t), printexp(*e)),
- Exp::App(e1, e2) => format!("{} {}", printexp(*e1), printexp(*e2)),
- _ => "".to_string()
+ Exp::App(e1, e2) => format!("({} ~ {})", printexp(*e1), printexp(*e2)),
+ _ => "error".to_string() 
 }
 }
 
