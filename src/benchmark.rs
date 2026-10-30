@@ -192,7 +192,7 @@ fn benchmark_one(tool: &MigrationTool, benchmark: &mut Benchmark) {
         && benchmark.assert_compatible.is_some()
     {
         outcome.result = Some(Expect::Disaster);
-        println!("assert_compatible is not more precise than the original program");
+        eprintln!("assert_compatible is not more precise than the original program");
         return;
     }
 
