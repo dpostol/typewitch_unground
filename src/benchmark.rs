@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::io::Read;
 use std::process::{Command, Stdio};
 use std::time::Duration;
@@ -45,7 +45,7 @@ struct Benchmark {
     #[serde(skip_serializing_if = "is_none")]
     context: Option<String>,
     #[serde(default)]
-    results: std::collections::HashMap<String, Outcome>,
+    results: BTreeMap<String, Outcome>,
     #[serde(default)] // default is zero
     num_stars: usize,
     #[serde(skip_serializing_if = "is_none")]
@@ -92,7 +92,7 @@ fn count_stars(e: &super::syntax::Exp) -> usize {
 
 fn get_outcome<'a>(
     tool_name: &str,
-    results: &'a mut std::collections::HashMap<String, Outcome>,
+    results: &'a mut BTreeMap<String, Outcome>,
 ) -> &'a mut Outcome {
     if !results.contains_key(tool_name) {
         results.insert(
@@ -277,13 +277,13 @@ pub fn summarize_latex(src_file: impl AsRef<str>) -> Result<(), std::io::Error> 
     let src_text = std::fs::read_to_string(src_file.as_ref())?;
     let benchmarks: Benchmarks = serde_yaml::from_str(&src_text).expect("syntax error");
 
-    let mut rejected = HashMap::<String, i32>::new();
-    let mut new_runtime_err = HashMap::<String, i32>::new();
-    let mut unusable = HashMap::<String, i32>::new();
-    let mut restricted = HashMap::<String, i32>::new();
-    let mut compatible = HashMap::<String, i32>::new();
-    let mut num_stars_left = HashMap::<String, i32>::new();
-    let mut num_original_stars = HashMap::<String, i32>::new();
+    let mut rejected = BTreeMap::<String, i32>::new();
+    let mut new_runtime_err = BTreeMap::<String, i32>::new();
+    let mut unusable = BTreeMap::<String, i32>::new();
+    let mut restricted = BTreeMap::<String, i32>::new();
+    let mut compatible = BTreeMap::<String, i32>::new();
+    let mut num_stars_left = BTreeMap::<String, i32>::new();
+    let mut num_original_stars = BTreeMap::<String, i32>::new();
     for tool in &benchmarks.tools {
         rejected.insert(tool.title.clone(), 0);
         new_runtime_err.insert(tool.title.clone(), 0);
