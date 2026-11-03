@@ -29,7 +29,7 @@ benchmarks:
     # This is an improved type. But, the program always crashes.
     assert_compatible: |
       (fun b:(any -> any) -> (any -> int) -> any -> int.
-         b (fun c:any.  (fun x:int. x x) 5 5) (fun d:any. 0)) 
+         b (fun c:any.  (fun x:int. x x) 5 5) (fun d:any. 0))
       (fun t:any -> any. fun f:any -> int. f)
   - file: adversarial/04-f-in-f-out.gtlc
     # this is obviously an improved type
@@ -49,7 +49,7 @@ benchmarks:
     # g is always uses as an int -> int function, f is always applied g and an
     # int. However, f may return a non-int.
     assert_compatible: |
-      fun f : (int -> int) -> (int -> any) . 
+      fun f : (int -> int) -> (int -> any) .
         fun g : int -> int. (f g) ((g 10) + 1)
   - file: adversarial/07-double-f.gtlc
     context: |
@@ -125,38 +125,38 @@ benchmarks:
       fun x:any -> any. x x
   - file: migeed/11_untypable_in_sys_f.gtlc
     assert_compatible: |
-      (fun x:(any -> any -> any) -> any. 
-        fun y:any -> any -> any. 
-          y (x (fun x:any. x)) 
+      (fun x:(any -> any -> any) -> any.
+        fun y:any -> any -> any.
+          y (x (fun x:any. x))
             (x (fun b:any. fun c:any. b)))
-      (fun d:any -> any. d d)      
-  - file: migeed/12_self_interpreter.gtlc    
+      (fun d:any -> any. d d)
+  - file: migeed/12_self_interpreter.gtlc
     assert_compatible: |
-      (fun h: any .
-        (fun x:any . h (x x)) 
-        (fun x: any .
-          h (x x)))
-      (fun e:any .
-        fun m: any .
-          m (fun x:any . x) 
-            (fun m:any . fun n:any . e m (e n)) 
-            (fun m:any -> any . fun v:any. e (m v)))
+      (fun h:(any -> any) -> (any -> any).
+        (fun x:any -> any. h (fun v:any. x x v))
+        (fun x:any. h (fun v:any. x x v)))
+      (fun e:any -> any.
+        fun m:any.
+          m (fun x:any. x)
+            (fun m:any. fun n:any. e m (e n))
+            (fun m:any. fun v:any. e (m v)))
+
   - file: migeed/13_self_interpreter_buggy.gtlc
     assert_compatible: |
       (fun h: ((any -> any) ->
-               (any -> any -> any) -> 
+               (any -> any -> any) ->
                ((any -> any) -> any -> any) -> any) ->
-               ((any -> any) -> (any -> any -> any) -> 
+               ((any -> any) -> (any -> any -> any) ->
                 ((any -> any) -> any -> any) -> any) -> any .
-        (fun x:any -> any. h (x x)) 
+        (fun x:any -> any. h (x x))
         (fun x: (any -> any) ->
                 (any -> any -> any) -> ((any -> any) -> any -> any) -> any .
           h x x))
       (fun e:any .
         fun m: (any -> any) ->
                (any -> any -> any) -> ((any -> any) -> any -> any) -> any .
-          m (fun x:any . x) 
-            (fun m:any . fun n:any . e m (e n)) 
+          m (fun x:any . x)
+            (fun m:any . fun n:any . e m (e n))
             (fun m:any -> any . fun v:any. e (m v)))
   #- file: migeed/14_self_interpreter_cbn.gtlc
    # assert_compatible: |
