@@ -8,6 +8,9 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  # Pin Z3 to match local dev machines; the optimizer's answers differ across versions.
+  Z3_VERSION: 4.13.3
+  Z3_ASSET: z3-4.13.3-x64-glibc-2.35
 
 jobs:
   build:
@@ -15,6 +18,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
+    - name: Install Z3 ${{ env.Z3_VERSION }}
+      run: |
+        curl -sSfL -o z3.zip "https://github.com/Z3Prover/z3/releases/download/z3-${Z3_VERSION}/${Z3_ASSET}.zip"
+        unzip -q z3.zip -d "$HOME"
+        Z3_DIR="$HOME/${Z3_ASSET}"
+        # LIBRARY_PATH loses to the runner's system libz3; an explicit -L wins.
+        echo "Z3_DIR=$Z3_DIR" >> "$GITHUB_ENV"
+        echo "RUSTFLAGS=-L native=$Z3_DIR/bin" >> "$GITHUB_ENV"
+        echo "LD_LIBRARY_PATH=$Z3_DIR/bin" >> "$GITHUB_ENV"
     - id: cache-cargo
       uses: actions/cache@v6
       with:
@@ -22,7 +34,7 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-z3-${{ env.Z3_VERSION }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Compile (smt)
       if: steps.cache-cargo.outputs.cache-hit != 'true'
       run: cargo build
@@ -34,6 +46,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
+    - name: Install Z3 ${{ env.Z3_VERSION }}
+      run: |
+        curl -sSfL -o z3.zip "https://github.com/Z3Prover/z3/releases/download/z3-${Z3_VERSION}/${Z3_ASSET}.zip"
+        unzip -q z3.zip -d "$HOME"
+        Z3_DIR="$HOME/${Z3_ASSET}"
+        # LIBRARY_PATH loses to the runner's system libz3; an explicit -L wins.
+        echo "Z3_DIR=$Z3_DIR" >> "$GITHUB_ENV"
+        echo "RUSTFLAGS=-L native=$Z3_DIR/bin" >> "$GITHUB_ENV"
+        echo "LD_LIBRARY_PATH=$Z3_DIR/bin" >> "$GITHUB_ENV"
     - id: cache-cargo
       uses: actions/cache@v6
       with:
@@ -41,7 +62,7 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-z3-${{ env.Z3_VERSION }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Compile (smt)
       if: steps.cache-cargo.outputs.cache-hit != 'true'
       run: |
@@ -49,6 +70,9 @@ jobs:
         exit 1
     - name: TypeWhich and InsAndOuts benchmarks
       run: |
+        cargo build
+        ldd target/debug/typeinf-playground | grep z3
+        ldd target/debug/typeinf-playground | grep -q "$Z3_DIR/bin/libz3.so"
         cargo run -- benchmark benchmarks.yaml --ignore Gtubi MGT MaxMigrate InsAndOuts > test.results.yaml
         ./bin/yamldiff test.expected.yaml test.results.yaml || git diff --no-index --word-diff test.expected.yaml test.results.yaml
     - name: Grift frontend
