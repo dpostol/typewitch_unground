@@ -132,6 +132,17 @@ benchmarks:
       (fun d:any -> any. d d)      
   - file: migeed/12_self_interpreter.gtlc    
     assert_compatible: |
+      (fun h: any .
+        (fun x:any . h (x x)) 
+        (fun x: any .
+          h (x x)))
+      (fun e:any .
+        fun m: any .
+          m (fun x:any . x) 
+            (fun m:any . fun n:any . e m (e n)) 
+            (fun m:any -> any . fun v:any. e (m v)))
+  - file: migeed/13_self_interpreter_buggy.gtlc
+    assert_compatible: |
       (fun h: ((any -> any) ->
                (any -> any -> any) -> 
                ((any -> any) -> any -> any) -> any) ->
@@ -147,3 +158,8 @@ benchmarks:
           m (fun x:any . x) 
             (fun m:any . fun n:any . e m (e n)) 
             (fun m:any -> any . fun v:any. e (m v)))
+  #- file: migeed/14_self_interpreter_cbn.gtlc
+   # assert_compatible: |
+    #  (fun h:(any -> any) -> (any -> any). (fun x:any -> any. h (x x)) (fun x:any. h (x
+     # x))) (fun e:any. fun m:any. m (fun x:any. x) (fun m:any. fun n:any.
+      #e m (e n)) (fun m:any. fun v:any. e (m v)))
