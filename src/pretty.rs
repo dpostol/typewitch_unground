@@ -115,31 +115,30 @@ fn alphabet(i: u32) -> String {
     }
 }
 
-fn printtype (t : Typ) -> String {
-match t {
-      Typ::Int => "\\int".to_string(),
-      Typ::Any => "\\mathord{\\star}".to_string(),
-      Typ::Arr(t1, t2) => format!("({} \\rightarrow {})", printtype(*t1), printtype(*t2)),
-      _ => "".to_string()
+fn printtype(t: Typ) -> String {
+    match t {
+        Typ::Int => "\\int".to_string(),
+        Typ::Any => "\\mathord{\\star}".to_string(),
+        Typ::Arr(t1, t2) => format!("({} \\rightarrow {})", printtype(*t1), printtype(*t2)),
+        _ => "".to_string(),
+    }
 }
 
+fn printcoerce(k: Coerce) -> String {
+    match k {
+        Coerce::Id => "\\id".to_string(),
+        Coerce::Tag(GroundTyp::Int) => "\\int !".to_string(),
+        Coerce::Tag(GroundTyp::Bool) => "bool !".to_string(),
+        Coerce::Tag(GroundTyp::Fun) => "\\mathsf{fun} !".to_string(),
+        Coerce::Untag(GroundTyp::Int, _l) => "\\int \\que".to_string(),
+        Coerce::Untag(GroundTyp::Bool, _l) => "bool \\que".to_string(),
+        Coerce::Untag(GroundTyp::Fun, _l) => "\\mathsf{fun} \\que".to_string(),
+        Coerce::Seq(k1, k2) => format!("{} ; {}", printcoerce(*k1), printcoerce(*k2)),
+        Coerce::Wrap(k1, k2) => format!("({} \\mapsto {})", printcoerce(*k1), printcoerce(*k2)),
+        Coerce::Doomed => "doomed".to_string(),
+    }
 }
-
-fn printcoerce(k : Coerce) -> String {
-match k {
-	Coerce::Id => "\\id".to_string(),
-	Coerce::Tag(GroundTyp::Int) => "\\int !".to_string(),
-	Coerce::Tag(GroundTyp::Bool) => "bool !".to_string(),
-	Coerce::Tag(GroundTyp::Fun) => "\\mathsf{fun} !".to_string(),
-	Coerce::Untag(GroundTyp::Int, l) => "\\int \\que".to_string(),
-	Coerce::Untag(GroundTyp::Bool, l) => "bool \\que".to_string(),
-	Coerce::Untag(GroundTyp::Fun, l) => "\\mathsf{fun} \\que".to_string(),
-	Coerce::Seq(k1, k2) => format!("{} ; {}", printcoerce(*k1), printcoerce(*k2)),
-	Coerce::Wrap(k1, k2) => format!("({} \\mapsto {})", printcoerce(*k1), printcoerce(*k2)),
-	Coerce::Doomed => "doomed".to_string(),
-}
-}
-/* 
+/*
 fn printatom (e : Exp) -> String {
     match e {
         Exp::Lit(l) => format!("{:?}", l),
@@ -206,62 +205,62 @@ pub fn printexp(e : Exp) -> String {
  }
 }
 */
-pub fn printexp(e : Exp) -> String {   
- match e {
- Exp::Lit(l) => format!("{:?}", l),
- Exp::Var(x) => x,
- Exp::Ann(e, typ) => format!("{} \\mathord{{:}} {}", printexp(*e), printtype(typ)),
- Exp::PrimCoerce(k, e) => match k {
- 		    Coerce::Id => printexp(*e),
-		    _ => format!("[{}] {}", printcoerce(k), printexp(*e)),
-},
- Exp::Fun(id, t, e) => format!("\\lambda {} \\mathord{{:}} {} . ~ {} ", id, printtype(t), printexp(*e)),
- Exp::App(e1, e2) => format!("({} ~ {})", printexp(*e1), printexp(*e2)),
- _ => "error".to_string() 
-}
-}
-
-pub fn simplexp(e : Exp) -> Exp {
-match e {
-      Exp::PrimCoerce(k, e) => Exp::PrimCoerce(simplify(k), Box::new(simplexp(*e))),
-      Exp::Fun(id, t, e) => Exp::Fun(id, t, Box::new(simplexp(*e))),
-      Exp::App(e1, e2) => Exp::App(Box::new(simplexp(*e1)), Box::new(simplexp(*e2))),
-      _ => e
+pub fn printexp(e: Exp) -> String {
+    match e {
+        Exp::Lit(l) => format!("{:?}", l),
+        Exp::Var(x) => x,
+        Exp::Ann(e, typ) => format!("{} \\mathord{{:}} {}", printexp(*e), printtype(typ)),
+        Exp::PrimCoerce(k, e) => match k {
+            Coerce::Id => printexp(*e),
+            _ => format!("[{}] {}", printcoerce(k), printexp(*e)),
+        },
+        Exp::Fun(id, t, e) => format!(
+            "\\lambda {} \\mathord{{:}} {} . ~ {} ",
+            id,
+            printtype(t),
+            printexp(*e)
+        ),
+        Exp::App(e1, e2) => format!("({} ~ {})", printexp(*e1), printexp(*e2)),
+        _ => "error".to_string(),
+    }
 }
 
+pub fn simplexp(e: Exp) -> Exp {
+    match e {
+        Exp::PrimCoerce(k, e) => Exp::PrimCoerce(simplify(k), Box::new(simplexp(*e))),
+        Exp::Fun(id, t, e) => Exp::Fun(id, t, Box::new(simplexp(*e))),
+        Exp::App(e1, e2) => Exp::App(Box::new(simplexp(*e1)), Box::new(simplexp(*e2))),
+        _ => e,
+    }
 }
 
 // removes identities
-fn simplify(k : Coerce) -> Coerce {
-   match k {
-   Coerce::Id => Coerce::Id,
-   Coerce::Tag(g) => Coerce::Tag(g),
-   Coerce::Untag(g, l) => Coerce::Untag(g, l),
-   Coerce::Doomed => Coerce::Doomed,
-   Coerce::Seq(k1, k2) =>
-   {
-    let sk1 = simplify(*k1);
-    let sk2 = simplify(*k2);
-    match sk1 {
-    Coerce::Id => sk2,
-    _ => match sk2 {
-      Coerce::Id => sk1,
-      _ => Coerce::Seq(Box::new(sk1), Box::new(sk2)),
-    },
+fn simplify(k: Coerce) -> Coerce {
+    match k {
+        Coerce::Id => Coerce::Id,
+        Coerce::Tag(g) => Coerce::Tag(g),
+        Coerce::Untag(g, l) => Coerce::Untag(g, l),
+        Coerce::Doomed => Coerce::Doomed,
+        Coerce::Seq(k1, k2) => {
+            let sk1 = simplify(*k1);
+            let sk2 = simplify(*k2);
+            match sk1 {
+                Coerce::Id => sk2,
+                _ => match sk2 {
+                    Coerce::Id => sk1,
+                    _ => Coerce::Seq(Box::new(sk1), Box::new(sk2)),
+                },
+            }
+        }
+        Coerce::Wrap(k1, k2) => {
+            let sk1 = simplify(*k1);
+            let sk2 = simplify(*k2);
+            match (sk1.clone(), sk2.clone()) {
+                (Coerce::Id, Coerce::Id) => Coerce::Id,
+                _ => Coerce::Wrap(Box::new(sk1), Box::new(sk2)),
+            }
+        }
     }
-    },
-    Coerce::Wrap(k1, k2) => {
-    let sk1 = simplify(*k1);
-    let sk2 = simplify(*k2);
-    match (sk1.clone(), sk2.clone()) {
-    (Coerce::Id, Coerce::Id) =>  Coerce::Id,
-    _ => Coerce::Wrap(Box::new(sk1), Box::new(sk2)),
-
-    }
-
-},
-   }
-
 }
 
 impl Pretty for Lit {
@@ -317,23 +316,22 @@ fn pretty<'b, D, A>(&'b self, pp: &'b D) -> pretty::DocBuilder<'b, D, A>
         <D as pretty::DocAllocator<'b, A>>::Doc: std::clone::Clone,
     {
         match self {
-	Coerce::Id => pp.text("\\id"),
-	Coerce::Tag(GroundTyp::Int) => pp.text("\\int !"),
-	Coerce::Tag(GroundTyp::Bool) => pp.text("bool !"),
-	Coerce::Tag(GroundTyp::Fun) => pp.text("\\mathsf{fun} !"),
-	Coerce::Untag(GroundTyp::Int, l) => pp.text("\\int \\que"),
-	Coerce::Untag(GroundTyp::Bool, l) => pp.text("bool \\que"),
-	Coerce::Untag(GroundTyp::Fun, l) => pp.text("\\mathsf{fun} \\que"),
-	Coerce::Seq(k1, k2) => pp.concat(vec![ k1.pretty(pp), pp.text(";"), k2.pretty(pp)]),
-	Coerce::Wrap(k1, k2) => pp.concat(vec![pp.text("("), k1.pretty(pp), pp.text("\\mapsto"), k2.pretty(pp), pp.text(")")]),
-	Coerce::Doomed => pp.text("doomed"),
-	}
+    Coerce::Id => pp.text("\\id"),
+    Coerce::Tag(GroundTyp::Int) => pp.text("\\int !"),
+    Coerce::Tag(GroundTyp::Bool) => pp.text("bool !"),
+    Coerce::Tag(GroundTyp::Fun) => pp.text("\\mathsf{fun} !"),
+    Coerce::Untag(GroundTyp::Int, l) => pp.text("\\int \\que"),
+    Coerce::Untag(GroundTyp::Bool, l) => pp.text("bool \\que"),
+    Coerce::Untag(GroundTyp::Fun, l) => pp.text("\\mathsf{fun} \\que"),
+    Coerce::Seq(k1, k2) => pp.concat(vec![ k1.pretty(pp), pp.text(";"), k2.pretty(pp)]),
+    Coerce::Wrap(k1, k2) => pp.concat(vec![pp.text("("), k1.pretty(pp), pp.text("\\mapsto"), k2.pretty(pp), pp.text(")")]),
+    Coerce::Doomed => pp.text("doomed"),
+    }
 
     }
 
 }
 */
-
 
 impl Pretty for Exp {
     fn pretty<'b, D, A>(&'b self, pp: &'b D) -> pretty::DocBuilder<'b, D, A>
@@ -555,8 +553,7 @@ impl Pretty for Exp {
             ]),
             Exp::Coerce(_, _, e) => e.pretty(pp),
             Exp::PrimCoerce(k, e) => {
-	    pp.concat(vec![pp.text(format!("[{k:?}]")), e.pretty(pp).nest(2)])
-                
+                pp.concat(vec![pp.text(format!("[{k:?}]")), e.pretty(pp).nest(2)])
             }
         }
     }

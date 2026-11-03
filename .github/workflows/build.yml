@@ -49,7 +49,7 @@ jobs:
         exit 1
     - name: TypeWhich and InsAndOuts benchmarks
       run: |
-        cargo run -- benchmark benchmarks.yaml --ignore Gtubi MGT MaxMigrate > test.results.yaml
+        cargo run -- benchmark benchmarks.yaml --ignore Gtubi MGT MaxMigrate InsAndOuts > test.results.yaml
         ./bin/yamldiff test.expected.yaml test.results.yaml
     - name: Grift frontend
       run: ./test-runner.sh grift grift
