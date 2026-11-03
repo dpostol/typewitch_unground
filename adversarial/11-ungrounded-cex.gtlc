@@ -1,0 +1,1 @@
+(fun f . if (f true) then (f 1) + (f 2) + (f 3) else 0) (fun x . x)

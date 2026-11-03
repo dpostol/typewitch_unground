@@ -262,6 +262,26 @@ benchmarks:
             num_stars: 2
         migration: "fun tag:any. fun x:any. if tag then x + 1 else if x then 1 else 0\n"
     num_stars: 2
+  - file: adversarial/11-ungrounded-cex.gtlc
+    results:
+      TypeWhich:
+        result:
+          FullyCompatible:
+            num_stars: 1
+        migration: "(fun f:any -> any. if f true then f 1 + f 2 + f 3 else 0) (fun x:any. x)\n"
+      TypeWhich2:
+        result:
+          FullyCompatible:
+            num_stars: 1
+        migration: "(fun f:any -> any. if f true then f 1 + f 2 + f 3 else 0) (fun x:any. x)\n"
+      TypeWhichU:
+        result: NewRuntimeError
+        migration: "(fun f:int -> int. if (f : any) true then f 1 + f 2 + f 3 else 0)\n(fun x:int. x)\n"
+      TypeWhichU2:
+        result: NewRuntimeError
+        migration: "(fun f:int -> int. if (f : any) true then f 1 + f 2 + f 3 else 0)\n(fun x:int. x)\n"
+    num_stars: 2
+    assert_compatible: "(fun f:any -> any. if f true then f 1 + f 2 + f 3 else 0) (fun x:any. x)\n"
   - file: migeed/01_apply_add.gtlc
     results:
       TypeWhich:

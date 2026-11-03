@@ -64,6 +64,16 @@ benchmarks:
   - file: adversarial/10-if-tag.gtlc
     context: |
       (HOLE) true 1
+  - file: adversarial/11-ungrounded-cex.gtlc
+    # f is used at int three times and at bool once. Typing f : int -> int saves
+    # coercions at the int uses, so the coercion-minimal *ungrounded* migration
+    # picks it and reaches the bool use via (f : any), which fails at runtime
+    # (NewRuntimeError). Grounding forbids weakening int -> int to any, so the
+    # grounded variants must pick f : any -> any, which is safe.
+    # f is applied to both bool and int and its results are used as both, so
+    # any -> any is the most precise compatible type for f.
+    assert_compatible: |
+      (fun f:any -> any. if f true then f 1 + f 2 + f 3 else 0) (fun x:any. x)
   - file: migeed/01_apply_add.gtlc
     # This is what we get out of MGT. It is compatible with the assumption that
     # the inner x has a coercion that is "doomed to fail". MGT produces this
